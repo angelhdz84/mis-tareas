@@ -1,0 +1,51 @@
+{
+  "name": "mis-tareas-pc",
+  "version": "1.0.0",
+  "description": "Mis Tareas - Aplicación de escritorio 100% local para gestionar tus tareas",
+  "private": true,
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "tauri": "tauri",
+    "preview": "tauri build --debug",
+    "vendor": "node scripts/vendor.mjs",
+    "pwa": "node scripts/pwa.mjs",
+    "inicio": "electron .",
+    "instalador": "electron-builder --win nsis"
+  },
+  "build": {
+    "appId": "com.mistareas.app",
+    "productName": "Mis Tareas",
+    "directories": { "output": "dist" },
+    "files": [ "electron/**/*", "src/**/*" ],
+    "win": { "icon": "src-tauri/icons/icon.ico" },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "uninstallDisplayName": "Mis Tareas"
+    }
+  },
+  "keywords": [
+    "tareas",
+    "task-manager",
+    "desktop",
+    "tauri",
+    "offline",
+    "local"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@tauri-apps/api": "^2.1.1",
+    "@tauri-apps/cli": "^2.1.0",
+    "@tauri-apps/plugin-dialog": "^2.0.1",
+    "@tauri-apps/plugin-fs": "^2.0.1",
+    "@tauri-apps/plugin-notification": "^2.0.0",
+    "@tauri-apps/plugin-opener": "^2.0.0",
+    "@tauri-apps/plugin-shell": "^2.0.1",
+    "electron": "^45.2.3",
+    "electron-builder": "^26.18.0"
+  }
+}

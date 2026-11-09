@@ -1,0 +1,33 @@
+# Dependencias
+node_modules/
+
+# Build de Rust
+src-tauri/target/
+src-tauri/Cargo.lock
+
+# Cache y temporales
+.cache/
+*.log
+*.tmp
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Build output (se generan al compilar)
+src-tauri/gen/
+dist/
+
+# Estado local de herramientas (sesiones, pruebas)
+.openchamber/
+.playwright-mcp/
+
+# Capturas sueltas de desarrollo (no forman parte del proyecto)
+/icono-mis-tareas.png
+/vista-previa-formulario.png
