@@ -4,8 +4,12 @@ Aplicación de escritorio para gestionar tus tareas, 100 % sin conexión.
 Todo se guarda en tu PC, sin internet, sin servidores, sin cuentas.
 
 > **Estado actual del motor**: la app corre sobre **Electron** (`npm run inicio`, instalador con
-> `npm run instalador`). Existen además la variante **Tauri 2** (`src-tauri/`, secciones abajo) y la
-> **PWA local** (`npm run pwa`). El frontend es el mismo `src/index.html` en los tres casos.
+> `npm run instalador`). Existen además la variante **Tauri 2** (`src-tauri/`, secciones abajo), la
+> **PWA local** (`npm run pwa`) y la rama **móvil «Mis Tareas Mini»** (`Movil/` + `android/`):
+> mini app para el teléfono con **APK Android** empaquetada con Capacitor y compilada
+> automáticamente en GitHub Actions (Release [`apk-latest`](https://github.com/angelhdz84/mis-tareas/releases/tag/apk-latest);
+> copia del APK en `Movil/apk/`). Detalles: `SPEC.md` y `AGENTS.md`.
+> El frontend del escritorio es el mismo `src/index.html` en sus tres motores.
 > Convenciones y trampas del repo: `AGENTS.md`. Especificación del producto: `SPEC.md`.
 
 ---
