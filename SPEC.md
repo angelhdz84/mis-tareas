@@ -10,6 +10,7 @@ sin internet, sin servidores, sin cuentas, sin CDNs. Un solo usuario, en su prop
   (`src-tauri/`) sigue en el repo como camino alternativo de compilación; el frontend es el mismo.
 - Tercer camino: **PWA** servida en local (`npm run pwa`, `http://localhost:8088`), instalable
   desde Edge/Chrome y lanzable con doble clic (`Mis Tareas (PWA).bat` + acceso directo en el Escritorio).
+- Rama **móvil** (`Mis Tareas Mini`): web monolítica en `Movil/` + APK Android vía Capacitor. Véase más abajo.
 - Datos del usuario: `Documentos/MisTareas/mis-tareas.json` + `backups/`. Nunca se commitean.
 
 ## Arquitectura
@@ -63,6 +64,41 @@ Argumentos en camelCase, sincronizados entre `index.html` y `main.js`: no renomb
 - **Notificaciones nativas** de Windows en recordatorios (Electron/Tauri) o Web Notifications (navegador).
 - Atajos: `Ctrl+N/F/E/I/P/T/B/1/2/3`, `Ctrl+Enter` guarda, `Esc` cierra diálogos o sale de la selección.
 
+## Rama móvil — «Mis Tareas Mini»
+Rama de naturaleza distinta: se comparte el **esquema**, no el código. Sirve del móvil 100 % sin conexión.
+
+- `Movil/index.html` — monolito propio (CSS+HTML+JS inline, ~1.200 líneas). Sin frameworks ni CDNs.
+  Vistas **Hoy / Lista / Semana** con navegación inferior (`#tabs`), FAB de nueva tarea, hoja de
+  edición (`<dialog>`, con validación recordatorio ≤ fecha límite), subtareas editables en tarjeta
+  y hoja, etiquetas con chips de color, búsqueda + filtro de prioridad, borrado con deshacer,
+  duplicar, recurrencias, tema claro/oscuro, recordatorios in-app (aviso + vibración; Web
+  Notification en navegador) y tarjetas grandes táctiles (objetivos ≥ 44 px).
+- `Movil/manifest.webmanifest` + `Movil/sw.js` (caché `mis-tareas-mini-v1`) — PWA offline en navegador.
+  Atajos del manifest `#nueva` y `#hoy`, atendidos por `atenderHash()` (limpia el hash).
+- `scripts/movil.mjs` (`npm run movil`, puerto 8089; `npm run movil:lan` → 0.0.0.0 para probar por Wi-Fi,
+  aunque SIN caché offline: Chrome solo instala PWA en localhost/HTTPS — el instalable real es la APK).
+- `capacitor.config.json` + `android/` — proyecto Capacitor 8 commiteado (NO se regenera en CI).
+  `webDir: "Movil"`, `appId: com.mistareas.mini`. En nativo (`esNativo`) no hay SW ni `<a download>`:
+  exportar copia = `@capacitor/filesystem` (`writeFile` en Documents, base64) + `@capacitor/share`;
+  importar = `<input type="file">` y fallback «pegar JSON». Los datos viven en el localStorage del
+  WebView; el puente PC↔móvil son los archivos JSON exportados/importados a mano.
+- Iconos Android generados con `@capacitor/assets` desde `assets/icon.png` + `assets/splash.png`
+  (fuentes en `assets/`, regenerables con `npx @capacitor/assets generate --android`).
+- `.github/workflows/apk.yml` — push a main que toque la rama móvil ⇒ APK **debug** en la Release
+  flotante `apk-latest`; etiqueta `v*` ⇒ además `assembleRelease` (firma opcional con secretos
+  `MIS_TAREAS_KEYSTORE*`, sin ellos firma debug). Runner ubuntu-latest lleva el SDK; el workflow
+  escribe `local.properties`, cachea Gradle y hace `npx cap sync android` antes de compilar.
+- La versión de la APK sale de `package.json` (la traduce `android/app/build.gradle` a versionName/Code).
+- `Movil/` NO viaja en el instalador NSIS (`build.files` solo empaqueta `electron/**` y `src/**`).
+
+### Trampas de la rama móvil
+- `normalizar()` está **duplicada** a propósito (escritorio y mini). Cualquier cambio de esquema
+  debe tocarse en las dos y probarse en las dos.
+- `CLAVE = "mis-tareas-v2"` coincide con el escritorio, pero el localStorage es distinto (origen
+  distinto: puerto 8089 / WebView nativo). En el APK el origen es `https://localhost`.
+- `completadaEl` es ISO UTC: agrupar por día usa `claveLocalDe()` (hora local), no `slice(0,10)`.
+- En nativo el SW ni se registra (`esNativo` lo salta); en navegador sí.
+
 ## Reglas clave
 - Español en interfaz, comentarios, nombres de comandos y mensajes de error.
 - Cero dependencias externas en runtime: nada de CDNs, fuentes remotas ni librerías en el HTML.
@@ -77,7 +113,10 @@ Argumentos en camelCase, sincronizados entre `index.html` y `main.js`: no renomb
 ## Verificación
 No hay pruebas automatizadas en el repo. La verificación real es arrancar y usar:
 - `npm run inicio` (Electron) o `npm run pwa` + navegador.
-- Comprobación de sintaxis del JS inline: extraer el `<script>` y `node --check`.
+- Rama móvil: `npm run movil` (o `npm run movil:lan` para el teléfono por Wi-Fi). La APK se
+  compila sola en Actions: vigilar `gh run list --workflow apk.yml`; el resultado cae en la
+  Release «apk-latest» del repo.
+- Comprobación de sintaxis del JS inline: extraer el `<script>` y `node --check` (escritorio y mini).
 - Pruebas ad-hoc con Playwright headless sobre la PWA mockeando `localStorage`
   (guiones de sesión en `%TEMP%`, no commiteados). Último lote: 0 errores de consola,
   tema/duplicar/selección+deshacer/cronómetro/gráfico/CSV/pie verificados.

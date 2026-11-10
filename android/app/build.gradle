@@ -1,0 +1,79 @@
+apply plugin: 'com.android.application'
+
+// Versión única: se toma de package.json (misma que el instalador de escritorio)
+def raizRepo = project.projectDir.parentFile.parentFile
+def versionaNpm = "1.0.0"
+try {
+    versionaNpm = new groovy.json.JsonSlurper().parse(new File(raizRepo, "package.json")).version
+} catch (Exception e) {
+    logger.warn("No se pudo leer package.json, se mantiene versionName 1.0.0")
+}
+def partes = versionaNpm.split('-')[0].tokenize('.')
+def code = (partes.size() >= 3) ? (partes[0] as int) * 10000 + (partes[1] as int) * 100 + (partes[2] as int) : 1
+
+// Firma de release opcional: sin estas variables de entorno se firma con la clave de debug
+def keystoreRuta = System.getenv("MIS_TAREAS_KEYSTORE")
+
+android {
+    namespace = "com.mistareas.mini"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "com.mistareas.mini"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode code
+        versionName versionaNpm
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    signingConfigs {
+        release {
+            if (keystoreRuta) {
+                storeFile file(keystoreRuta)
+                storePassword System.getenv("MIS_TAREAS_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("MIS_TAREAS_KEY_ALIAS")
+                keyPassword System.getenv("MIS_TAREAS_KEY_PASSWORD")
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig keystoreRuta ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}

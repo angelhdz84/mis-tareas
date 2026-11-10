@@ -1,0 +1,16 @@
+{
+  "appId": "com.mistareas.mini",
+  "appName": "Mis Tareas Mini",
+  "webDir": "Movil",
+  "npmClient": "npm",
+  "iconConfig": {
+    "android": {
+      "backgroundColor": "#2563eb"
+    }
+  },
+  "android": {
+    "allowCleartext": false,
+    "allowBackup": true,
+    "webContentsDebuggingEnabled": false
+  }
+}

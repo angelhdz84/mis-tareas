@@ -1,0 +1,124 @@
+name: APK Android (Mis Tareas Mini)
+
+# Compila la rama móvil: Movil/ (web) + android/ (proyecto Capacitor commiteado).
+#  - push a main que toque la rama móvil → APK de debug en la Release «apk-latest»
+#  - push de una etiqueta v*            → APK de debug y release en esa Release
+#  - workflow_dispatch                  → compilación manual
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+    paths:
+      - "Movil/**"
+      - "android/**"
+      - "capacitor.config.json"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/apk.yml"
+  workflow_dispatch:
+    inputs:
+      release:
+        description: "Compilar también la APK de release (assembleRelease)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    name: Construir APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: JDK 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      # El runner ubuntu-latest trae el SDK de Android y ANDROID_HOME ya definidos.
+      - name: Comprobar el SDK de Android
+        run: |
+          echo "ANDROID_HOME=${ANDROID_HOME:-${ANDROID_SDK_ROOT}}"
+          echo "sdk.dir=${ANDROID_HOME:-${ANDROID_SDK_ROOT}}" > android/local.properties
+          java -version
+
+      - name: Dependencias npm
+        run: npm ci
+
+      - name: Caché de Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('android/**/*.gradle*', 'android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      - name: Sincronizar la web móvil con el proyecto Android
+        run: npx cap sync android
+
+      - name: Compilar APK de debug
+        working-directory: android
+        run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Compilar APK de release (etiqueta o pedido manual)
+        if: startsWith(github.ref, 'refs/tags/v') || inputs.release
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: Preparar archivos con la versión en el nombre
+        run: |
+          mkdir -p salida
+          version=$(node -p "require('./package.json').version")
+          cp android/app/build/outputs/apk/debug/app-debug.apk "salida/MisTareasMini-$version-debug.apk"
+          if [ -f android/app/build/outputs/apk/release/app-release.apk ]; then
+            cp android/app/build/outputs/apk/release/app-release.apk "salida/MisTareasMini-$version-release.apk"
+          fi
+          ls -la salida
+
+      - name: Subir artefacto de la ejecución
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-movil-${{ github.sha }}
+          path: salida/*.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      # Release flotante para instalar desde el teléfono sin etiquetar versión
+      - name: Publicar apk-latest (push a main)
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-latest
+          name: "Mis Tareas Mini · última APK de prueba"
+          prerelease: true
+          draft: false
+          fail_on_unmatched_files: true
+          files: salida/MisTareasMini-*-debug.apk
+          body: |
+            APK de **debug** de la rama móvil, compilada por GitHub Actions en el commit `${{ github.sha }}`.
+
+            Cómo instalarla: descarga el `.apk`, ábrelo en el teléfono y permite «instalar de orígenes
+            desconocidos» para tu navegador. Los datos viven solo en el dispositivo; usa
+            *Copias de seguridad → Guardar/Cargar JSON* para pasarlos al PC o de vuelta.
+
+      - name: Adjuntar APKs a la Release de la etiqueta
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          fail_on_unmatched_files: true
+          files: salida/*.apk

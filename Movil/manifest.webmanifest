@@ -1,0 +1,36 @@
+{
+  "name": "Mis Tareas Mini",
+  "short_name": "Mis Tareas",
+  "description": "Gestor de tareas personal, 100 % sin conexión.",
+  "id": "./index.html",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f8fafc",
+  "theme_color": "#2563eb",
+  "lang": "es",
+  "icons": [
+    { "src": "./icon-32.png", "sizes": "32x32", "type": "image/png" },
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "./icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Nueva tarea",
+      "short_name": "Nueva",
+      "description": "Abre el formulario de nueva tarea",
+      "url": "./index.html#nueva",
+      "icons": [ { "src": "./icon-192.png", "sizes": "192x192" } ]
+    },
+    {
+      "name": "Hoy",
+      "short_name": "Hoy",
+      "description": "Vista de hoy",
+      "url": "./index.html#hoy",
+      "icons": [ { "src": "./icon-192.png", "sizes": "192x192" } ]
+    }
+  ]
+}

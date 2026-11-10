@@ -656,6 +656,20 @@ function hoyStr(){
   return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 }
 function aStr(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+/* Clave AAAA-MM-DD en hora LOCAL desde un ISO UTC: con slice(0,10) una tarea completada
+   de noche caería en el día siguiente del gráfico. */
+function claveLocalDe(iso){
+  if(!iso) return "";
+  const f = new Date(iso);
+  return isNaN(f.getTime()) ? String(iso).slice(0,10) : aStr(f);
+}
+/* "AAAA-MM-DD HH:mm" en hora local, para el CSV (el ISO guarda UTC) */
+function fechaHoraLocal(iso){
+  if(!iso) return "";
+  const f = new Date(iso);
+  if(isNaN(f.getTime())) return String(iso).replace("T"," ").slice(0,16);
+  return aStr(f)+" "+String(f.getHours()).padStart(2,"0")+":"+String(f.getMinutes()).padStart(2,"0");
+}
 function parseFecha(s){ const [a,m,dd]=s.split("-").map(Number); return new Date(a,m-1,dd); }
 function fechaBonita(s){
   const d=parseFecha(s);
@@ -1359,7 +1373,7 @@ function renderGraficoSemana(){
   const indice=new Map(dias.map(d=>[d.clave,d]));
   tareas.forEach(t=>{
     if(t.estado!=="completada" || !t.completadaEl) return;
-    const clave=String(t.completadaEl).slice(0,10);
+    const clave=claveLocalDe(t.completadaEl);
     const d=indice.get(clave);
     if(d) d.n++;
   });
@@ -1532,7 +1546,7 @@ function templeCSV(){
     (t.subtareas||[]).map(s=>(s.hecha?"[x] ":"[ ] ")+s.texto).join(" | "),
     t.descripcion,
     new Date(t.creadaEl).toISOString().slice(0,10),
-    t.completadaEl? String(t.completadaEl).replace("T"," ").slice(0,16) : ""
+    t.completadaEl? fechaHoraLocal(t.completadaEl) : ""
   ].map(linea).join(";")));
   return "\ufeff"+filas.join("\r\n");
 }

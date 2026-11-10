@@ -3,6 +3,7 @@
 App de escritorio Windows (Electron) para gestionar tareas, 100 % sin conexión.
 La fuente de la interfaz sigue siendo un único `src/index.html` sin compilación;
 el backend está en el proceso principal de Electron (`electron/main.js`).
+Hay una rama MÓVIL aislada: `Movil/` (mini monolítica) + `android/` (Capacitor) + APK en CI.
 Interfaz, comentarios, nombres de comandos y mensajes de error en español: mantenlo así.
 
 ## Comandos
@@ -11,9 +12,11 @@ Interfaz, comentarios, nombres de comandos y mensajes de error en español: mant
 - `npm run instalador` — genera el instalador NSIS en `dist/Mis Tareas Setup <versión>.exe` (`electron-builder --win nsis`). No requiere admin ni MSVC.
 - `npm run vendor` — regenera `src/vendor` (módulos `@tauri-apps/*`) tras actualizarlos; solo hace falta para la variante Tauri.
 - `npm run pwa` — servidor local en `http://localhost:8088` para la PWA (carpeta `src/`); instalable desde el navegador (Edge/Chrome → «Instalar aplicación»). Funciona 100 % offline con el service worker.
-- No hay pruebas, linter, typecheck ni CI. La verificación real: `npm run inicio` y probar la app.
+- `npm run movil` / `movil:lan` — servidor local (8089) de la rama móvil (`Movil/`); `:lan` escucha en 0.0.0.0 para probar desde el teléfono por Wi-Fi (en el navegador, sin caché offline).
+- `movil:sync` — `npx cap sync android` (tras tocar `Movil/`); `apk` / `apk:release` — Gradle local si hubiera SDK (normalmente se compila en GitHub Actions: `.github/workflows/apk.yml`).
+- No hay pruebas, linter, typecheck. La verificación real: `npm run inicio` / `npm run movil` y probar; la APK la compila Actions.
 - El directorio SÍ es repositorio git (`main`, remoto `origin` en GitHub). `git diff`/`git log` sí funcionan.
-  Ignorados: `node_modules/`, `dist/`, `src-tauri/target|gen`, `.openchamber/`, `.playwright-mcp/`.
+  Ignorados: `node_modules/`, `dist/`, `src-tauri/target|gen`, `android/` build outputs (su propio `.gitignore`), `.openchamber/`, `.playwright-mcp/`.
 
 ## Arquitectura
 - `src/index.html` contiene TODO el frontend (CSS, HTML y JS en línea, ~1.790 líneas). Sin módulos ni empaquetador; sin CDNs ni fuentes externas.
@@ -35,6 +38,15 @@ Interfaz, comentarios, nombres de comandos y mensajes de error en español: mant
 - Iconos de ventana/bandeja: `src-tauri/icons/icon.ico` (compartidos con la variante Tauri; si cambia, regenerar los tamaños).
 
 ## Trampas conocidas
+### Rama móvil (Movil/ + android/)
+- `Movil/` es ISLADA del escritorio: no tocar `src/`, `electron/` ni `src-tauri/` para la rama móvil, y viceversa. Comparten ESQUEMA, no código: `normalizar()` está DUPLICADA a propósito (desk y mini); un cambio de esquema se toca en las dos y se prueba en las dos.
+- La APK se compila en Actions (`.github/workflows/apk.yml`): push a main que toque `Movil/**`/`android/**` jalona la Release flotante `apk-latest` (APK debug); etiqueta `v*` añade `assembleRelease` (firma debug salvo secretos `MIS_TAREAS_KEYSTORE*`). `android/` se commitea entero (proyecto Capacitor, NO se regenera en CI); en el runner el SDK ya existe (se escribe `local.properties`) y Gradle se cachea.
+- En nativo (Capacitor) no hay SW ni `<a download>`: exportar copia = `@capacitor/filesystem` (writeFile base64 a Documents) + `@capacitor/share`; importar = `<input type="file">` o "pegar JSON". `esNativo` salta el registro del SW.
+- Iconos Android: fuentes `assets/icon.png` + `assets/splash.png`, regenerar con `npx @capacitor/assets generate --android` si cambia la marca. Los iconos del manifest (`Movil/icon-*.png`, pociones maskable) NO son los del APK.
+- `completadaEl` es ISO UTC: agrupar por día con `claveLocalDe()` (hora local), nunca `slice(0,10)` ( aplica a desk y mini).
+- La versión de la APK sale de `package.json` (la traduce `android/app/build.gradle`).
+- Atajos del manifest `#nueva`/`#hoy` los atiende `atenderHash()` en la mini (limpia el hash para que no se re-abran).
+
 - El cierre con la X oculta la ventana a la bandeja (nunca cierra). Salida real: bandeja → Salir. En pruebas automatizadas, cierra con la app mandando `saliendo` vía menú o matando el proceso.
 - Los comandos IPC van con argumentos en camelCase (`{ rutaBackup }`) aunque vengan del frontend en camelCase también — no renombrar unilateralmente: el frontend y `main.js` deben quedar sincronizados.
 - `package.json` NO tiene `"type": "module"` a propósito: `electron/main.js` y `preload.js` usan `require()`. Si se restaura `"type":"module"`, renombra esos archivos a `.cjs`.
