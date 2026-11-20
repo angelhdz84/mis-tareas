@@ -19,7 +19,7 @@ Interfaz, comentarios, nombres de comandos y mensajes de error en español: mant
   Ignorados: `node_modules/`, `dist/`, `src-tauri/target|gen`, `android/` build outputs (su propio `.gitignore`), `.openchamber/`, `.playwright-mcp/`.
 
 ## Arquitectura
-- `src/index.html` contiene TODO el frontend (CSS, HTML y JS en línea, ~1.790 líneas). Sin módulos ni empaquetador; sin CDNs ni fuentes externas.
+- `src/index.html` contiene TODO el frontend (CSS, HTML y JS en línea, ~1.830 líneas). Sin módulos ni empaquetador; sin CDNs ni fuentes externas.
 - `electron/main.js` (proceso principal) registra por IPC el mismo contrato de comandos que tenía el backend Rust de Tauri: `cargar_tareas`, `guardar_tareas`, `crear_backup_manual`, `obtener_carpeta_datos`, `listar_backups`, `restaurar_backup`, `mostrar_notificacion`, `backup_diario`, `abrir_carpeta`, más `guardar_archivo_dialogo` y `abrir_archivo_dialogo` (exportar/importar con diálogo nativo).
 - `electron/preload.js` expone `window.__TAURI_INTERNALS__.invoke(comando, argumentos)` y `window.misTareasElectron`, para que `index.html` detecte Electron (`esElectron`) y llame por IPC sin cambios de nombre.
 - El frontend distingue tres modos: `esElectron` (preload), `esTauri` (`__TAURI_INTERNALS__` + imports desde `src/vendor` vía import map) y navegador (fallback `localStorage`).
@@ -46,6 +46,11 @@ Interfaz, comentarios, nombres de comandos y mensajes de error en español: mant
 - `completadaEl` es ISO UTC: agrupar por día con `claveLocalDe()` (hora local), nunca `slice(0,10)` ( aplica a desk y mini).
 - La versión de la APK sale de `package.json` (la traduce `android/app/build.gradle`).
 - Atajos del manifest `#nueva`/`#hoy` los atiende `atenderHash()` en la mini (limpia el hash para que no se re-abran).
+- Sonido de la mini: Web Audio generado en código (`pitido()`, dos tonos), sin archivos; interruptor `#btnSonido` persistido en `mis-tareas-sonido` (ON por defecto). El `AudioContext` se desbloquea en el primer `pointerdown`; suena un solo par de pitidos por lote en `revisarRecordatorios()`.
+- Notificaciones del APK: `@capacitor/local-notifications` (`programarRecordatorio` al guardar con id `rt-<id>`, `cancelarRecordatorio` al borrar/completar/reabrir/duplicar; permiso pedido una vez al arrancar). El `smallIcon` debe ser un PNG con alfa en `android/app/src/main/res/drawable/` (`ic_stat_notify`): el plugin solo resuelve `drawable`, no `mipmap`; no uses `ic_launcher` como `largeIcon`.
+- Subtareas plegables (ambos monolitos): cabecera `.subs-cab`/`.t-subs-cab` + wrap con `grid-template-rows: 0fr → 1fr`. Trampa: cualquier `padding` o `min-height` en el elemento interior impide que el track baje a 0; `.subs-inner`/`.t-subs-inner` no llevan padding. La alternancia es in-situ (sin re-render) para que corra la animación.
+- La mini añade además: deslizar la tarjeta (derecha completa, izquierda borra con deshacer; umbral 70 px), subtarea rápida inline (`subinput`/`subadd`), filtro «Vencidas (n)» (`vista.soloVencidas`), racha de días (`rachaDias()`), resaltado de búsqueda con `<mark>` (`resaltar()`), FAB con sugerencia (`#sugerencia`, `renderSugerencia()`) y bienvenida inicial (`#bienvenida`, flag `mis-tareas-bienvenida`). El orden por prioridad ya existía en `filtrar()`.
+- Skills de diseño instaladas a nivel de proyecto en `.agents/skills/` (`web-design-guidelines`, `ui-ux-pro-max`), fijadas en `skills-lock.json`. Se instalan con `npx skills add -y`; no son dependencias de runtime.
 
 - El cierre con la X oculta la ventana a la bandeja (nunca cierra). Salida real: bandeja → Salir. En pruebas automatizadas, cierra con la app mandando `saliendo` vía menú o matando el proceso.
 - Los comandos IPC van con argumentos en camelCase (`{ rutaBackup }`) aunque vengan del frontend en camelCase también — no renombrar unilateralmente: el frontend y `main.js` deben quedar sincronizados.

@@ -28,6 +28,9 @@ sin internet, sin servidores, sin cuentas, sin CDNs. Un solo usuario, en su prop
   pasa por ahí. El backend nunca interpreta el contenido de las tareas.
 - `scripts/pwa.mjs` (servidor local), `scripts/vendor.mjs` (vendor Tauri), `src/sw.js` +
   `src/manifest.webmanifest` + `src/icon-*.png` (PWA offline).
+- `.agents/skills/` — skills de agente instaladas **solo para este proyecto**
+  (`web-design-guidelines`, `ui-ux-pro-max`; fijadas en `skills-lock.json` con `npx skills add`).
+  No son dependencias de runtime: el HTML sigue sin CDNs.
 
 ## Contrato de comandos (IPC Electron ≡ comandos Tauri)
 `cargar_tareas`, `guardar_tareas`, `crear_backup_manual`, `obtener_carpeta_datos`,
@@ -42,6 +45,8 @@ Argumentos en camelCase, sincronizados entre `index.html` y `main.js`: no renomb
 - `fecha`: `AAAA-MM-DD`; `recordatorio`: ISO `AAAA-MM-DDTHH:mm`
 - `etiquetas`: string[] (color derivado en `coloresTag`, paleta fija)
 - `subtareas`: `{ id, texto, hecha }[]`
+- `subsAbiertas`: boolean — plegado del bloque de subtareas (compartido por escritorio y mini;
+  `normalizar()` lo deja abierto si hay 3 subtareas o menos)
 - `cronometro`: `{ segundos, activo }` (creado por `normalizar()`; nunca se persiste `activo: true`)
 - `creadaEl`: number (ms), `completadaEl`: string ISO o `null` (alimenta el gráfico semanal)
 
@@ -52,7 +57,8 @@ Argumentos en camelCase, sincronizados entre `index.html` y `main.js`: no renomb
 - Creación/edición en diálogo modal centrado; entrada rápida con Enter; búsqueda, filtro por etiqueta
   y prioridad, 7 órdenes.
 - Validación: el recordatorio **no puede ser posterior** a la fecha límite (error inline, bloquea guardar).
-- Subtareas visibles y marcables desde la tarjeta, con barra de progreso.
+- Subtareas visibles y marcables desde la tarjeta, con barra de progreso y bloque plegable
+  (cabecera «Subtareas» con la cuenta; el estado vive en `subsAbiertas`).
 - **Duplicar** tarea; **selección múltiple** (mover estado / borrar en lote, con deshacer);
   **cronómetro** por tarea con indicador «en marcha».
 - **Recurrencias**: al completar se genera la siguiente instancia con fecha avanzada.
@@ -67,12 +73,24 @@ Argumentos en camelCase, sincronizados entre `index.html` y `main.js`: no renomb
 ## Rama móvil — «Mis Tareas Mini»
 Rama de naturaleza distinta: se comparte el **esquema**, no el código. Sirve del móvil 100 % sin conexión.
 
-- `Movil/index.html` — monolito propio (CSS+HTML+JS inline, ~1.200 líneas). Sin frameworks ni CDNs.
+- `Movil/index.html` — monolito propio (CSS+HTML+JS inline, ~1.600 líneas). Sin frameworks ni CDNs.
   Vistas **Hoy / Lista / Semana** con navegación inferior (`#tabs`), FAB de nueva tarea, hoja de
   edición (`<dialog>`, con validación recordatorio ≤ fecha límite), subtareas editables en tarjeta
   y hoja, etiquetas con chips de color, búsqueda + filtro de prioridad, borrado con deshacer,
   duplicar, recurrencias, tema claro/oscuro, recordatorios in-app (aviso + vibración; Web
   Notification en navegador) y tarjetas grandes táctiles (objetivos ≥ 44 px).
+- Atajos de uso de la mini: **alertas sonoras** con Web Audio (dos pitidos, interruptor
+  `#btnSonido` persistido en `mis-tareas-sonido`, desbloqueo del `AudioContext` en el primer
+  toque), **subtareas plegables** (mismo `subsAbiertas` que el escritorio), **deslizar** la tarjeta
+  a la derecha para completar y a la izquierda para borrar (con deshacer), **subtarea rápida**
+  en línea, filtro **«Vencidas (n)»**, **racha de días** con tareas completadas, **resaltado** de
+  la búsqueda con `<mark>`, **FAB con sugerencia** de por dónde continuar y **bienvenida** inicial
+  (flag `mis-tareas-bienvenida`).
+- **Notificaciones del sistema en la APK**: `@capacitor/local-notifications` programa un aviso por
+  recordatorio al guardar (`rt-<id>`) y lo cancela al borrar, completar, reabrir o duplicar; el
+  permiso se pide una vez al arrancar y su estado se muestra en la hoja de copias de seguridad
+  (`#estadoAvisos`, `#btnPermisoAvisos`). Icono propio `ic_stat_notify` (PNG con alfa en
+  `android/app/src/main/res/drawable/`).
 - `Movil/manifest.webmanifest` + `Movil/sw.js` (caché `mis-tareas-mini-v1`) — PWA offline en navegador.
   Atajos del manifest `#nueva` y `#hoy`, atendidos por `atenderHash()` (limpia el hash).
 - `scripts/movil.mjs` (`npm run movil`, puerto 8089; `npm run movil:lan` → 0.0.0.0 para probar por Wi-Fi,
@@ -89,6 +107,8 @@ Rama de naturaleza distinta: se comparte el **esquema**, no el código. Sirve de
   `MIS_TAREAS_KEYSTORE*`, sin ellos firma debug). Runner ubuntu-latest lleva el SDK; el workflow
   escribe `local.properties`, cachea Gradle y hace `npx cap sync android` antes de compilar.
 - La versión de la APK sale de `package.json` (la traduce `android/app/build.gradle` a versionName/Code).
+- Plugins nativos: `@capacitor/filesystem` (copias), `@capacitor/share` (compartir) y
+  `@capacitor/local-notifications` (recordatorios). Tras añadir o quitar uno: `npm run movil:sync`.
 - `Movil/` NO viaja en el instalador NSIS (`build.files` solo empaqueta `electron/**` y `src/**`).
 
 ### Trampas de la rama móvil
@@ -119,7 +139,9 @@ No hay pruebas automatizadas en el repo. La verificación real es arrancar y usa
 - Comprobación de sintaxis del JS inline: extraer el `<script>` y `node --check` (escritorio y mini).
 - Pruebas ad-hoc con Playwright headless sobre la PWA mockeando `localStorage`
   (guiones de sesión en `%TEMP%`, no commiteados). Último lote: 0 errores de consola,
-  tema/duplicar/selección+deshacer/cronómetro/gráfico/CSV/pie verificados.
+  tema/duplicar/selección+deshacer/cronómetro/gráfico/CSV/pie verificados; en la mini, sonido,
+  colapso, subtarea rápida, racha, resaltado, «vencidas», sugerencia, deslizar y avisos nativos;
+  en el escritorio, colapso de subtareas (0fr → altura real) y persistencia de `subsAbiertas`.
 - El instalador se genera con `npm run instalador` (NSIS, sin admin).
 
 ## Mantener
