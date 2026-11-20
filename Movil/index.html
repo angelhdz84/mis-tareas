@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f8fafc">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0b1220">
+<meta name="theme-color" id="metaThemeColor" content="#f8fafc">
 <title>Mis Tareas · Mini</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon-32.png" type="image/png">
@@ -19,12 +18,13 @@
     --verde:#059669; --verde-suave:#e8faf3;
     --ambar:#d97706; --ambar-suave:#fff6e0;
     --rojo:#dc2626; --rojo-suave:#fdeeee;
-    --texto:#0f172a; --muted:#475569; --soft:#94a3b8;
+    --texto:#0f172a; --muted:#475569; --soft:#64748b;
     --borde:#e2e8f0; --fondo:#f8fafc; --tarjeta:#ffffff;
     --sombra:0 1px 2px rgba(15,23,42,.05);
     --sombra-lg:0 10px 30px rgba(15,23,42,.16);
     --radio:14px; --radio-sm:11px;
     --barra-alto:60px;
+    color-scheme: light;
   }
   :root[data-tema="oscuro"]{
     --azul:#60a5fa; --azul-suave:#1e2a45;
@@ -32,10 +32,11 @@
     --verde:#34d399; --verde-suave:#122b22;
     --ambar:#fbbf24; --ambar-suave:#332a12;
     --rojo:#f87171; --rojo-suave:#3b1a1a;
-    --texto:#e2e8f0; --muted:#94a3b8; --soft:#64748b;
+    --texto:#e2e8f0; --muted:#94a3b8; --soft:#94a3b8;
     --borde:#334155; --fondo:#0b1220; --tarjeta:#111a2c;
     --sombra:0 1px 2px rgba(0,0,0,.4);
     --sombra-lg:0 10px 30px rgba(0,0,0,.6);
+    color-scheme: dark;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   html,body{height:100%}
@@ -47,6 +48,9 @@
   button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   input,textarea,select{font:inherit;color:var(--texto)}
   .oculto{display:none !important}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  :focus-visible{outline:2px solid var(--azul);outline-offset:2px}
+  .icon-btn:focus-visible,.pista:focus-visible,.marca:focus-visible,.subs-cab:focus-visible,.sub:focus-visible,.acciones button:focus-visible,.acciones select:focus-visible,.enlace:focus-visible,.btn:focus-visible,#fab:focus-visible,#sugerencia:focus-visible,#tabs button:focus-visible,.opcion:focus-visible{outline:2px solid var(--azul);outline-offset:2px}
 
   /* ---------- Cabecera ---------- */
   .cima{
@@ -100,14 +104,17 @@
 
   /* ---------- Secciones ---------- */
   .bloque{padding:14px 14px 0}
-  .bloque-titulo{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+  .bloque-titulo{display:flex;align-items:center;gap:8px;margin-bottom:9px;flex-wrap:wrap}
   .bloque-titulo h2{font-size:.96rem;font-weight:800}
   .bloque-titulo .num{
     background:var(--fondo);border:1px solid var(--borde);border-radius:99px;padding:1px 9px;
     font-size:.76rem;color:var(--muted);font-weight:700
   }
   .bloque-titulo .espacio{flex:1}
-  .enlace{font-size:.82rem;color:var(--azul);font-weight:700;padding:4px 6px;border-radius:7px}
+  .enlace{font-size:.82rem;color:var(--azul);font-weight:700;padding:10px 12px;min-height:44px;border-radius:9px;display:inline-flex;align-items:center}
+  .sec-acciones{display:inline-flex;gap:4px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+  .sec-btn{font-size:.78rem;color:var(--muted);font-weight:700;padding:8px 10px;min-height:44px;border:1px solid var(--borde);border-radius:10px;background:var(--fondo);display:inline-flex;align-items:center;gap:4px}
+  .sec-btn:active{background:var(--tarjeta)}
 
   /* ---------- Barra de progreso ---------- */
   .progreso-global{background:var(--tarjeta);border:1px solid var(--borde);border-radius:var(--radio);padding:12px 14px;margin:14px 14px 0}
@@ -127,7 +134,7 @@
   .dias{display:flex;gap:5px;margin-top:11px;align-items:flex-end;height:44px}
   .dias .d{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
   .dias .barr{width:100%;background:var(--verde);border-radius:3px 3px 0 0;min-height:2px;opacity:.85}
-  .dias .lbl{font-size:.6rem;color:var(--soft);font-weight:700}
+  .dias .lbl{font-size:.68rem;color:var(--muted);font-weight:700}
   .dias .d.hoy .lbl{color:var(--azul)}
 
   /* ---------- Tarjeta de tarea ---------- */
@@ -231,7 +238,7 @@
   .cal-dia-cab .nombre{font-size:.8rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
   .cal-dia-cab.hoy .nombre{color:var(--azul)}
   .cal-dia-cab .num{font-size:.76rem;color:var(--soft);font-weight:700}
-  .cal-dia-cab .mas{margin-left:auto;font-size:.78rem;color:var(--azul);font-weight:800;padding:4px 8px;border-radius:8px;background:var(--azul-suave)}
+  .cal-dia-cab .mas{margin-left:auto;font-size:.78rem;color:var(--azul);font-weight:800;padding:10px 12px;min-height:44px;border-radius:10px;background:var(--azul-suave);display:inline-flex;align-items:center}
   .sinfecha{margin:14px 14px 0;border:1px dashed var(--borde);border-radius:var(--radio);padding:10px 12px}
   .sinfecha h3{font-size:.78rem;color:var(--soft);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
 
@@ -268,15 +275,16 @@
     padding-bottom:env(safe-area-inset-bottom,0px);background:var(--tarjeta);border-top:1px solid var(--borde);
     display:grid;grid-template-columns:repeat(3,1fr)
   }
-  #tabs button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--soft);font-size:.68rem;font-weight:700}
+  #tabs button{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--muted);font-size:.72rem;font-weight:700}
   #tabs button .ico{width:21px;height:21px}
   #tabs button.activa{color:var(--azul)}
+  #tabs button.activa::after{content:"";position:absolute;top:0;left:28%;right:28%;height:3px;border-radius:0 0 3px 3px;background:var(--azul)}
 
   /* ---------- Hoja (formulario) ---------- */
   dialog{
     position:fixed;top:auto;left:0;right:0;bottom:0;margin:0;width:100%;max-width:none;border:none;
     background:var(--tarjeta);color:var(--texto);border-radius:22px 22px 0 0;box-shadow:var(--sombra-lg);
-    padding:0;max-height:92vh;overflow:auto;-webkit-overflow-scrolling:touch
+    padding:0;max-height:92vh;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain
   }
   dialog::backdrop{background:rgba(15,23,42,.55)}
   dialog[open]{animation:sube .22s ease}
@@ -298,16 +306,16 @@
   .campo input.con-error{border-color:var(--rojo);outline:2px solid var(--rojo);outline-offset:-2px}
   .chips-form{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
   .chip-tag{display:inline-flex;align-items:center;gap:6px;border-radius:99px;padding:5px 7px 5px 12px;font-size:.8rem;font-weight:700;color:#fff}
-  .chip-tag button{border:none;border-radius:50%;width:19px;height:19px;font-size:.72rem;background:rgba(255,255,255,.85);color:#333;padding:0;display:inline-flex;align-items:center;justify-content:center}
-  .chip-tag .color{width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.9);padding:0}
-  .fila-sub{display:flex;gap:9px;align-items:center;padding:6px 0;border-bottom:1px dashed var(--borde)}
-  .fila-sub .cuad{width:22px;height:22px;flex:none;border:2px solid var(--soft);border-radius:7px;display:inline-flex;align-items:center;justify-content:center}
-  .fila-sub .cuad .ico{width:13px;height:13px;color:transparent}
+  .chip-tag button{border:none;border-radius:50%;width:28px;height:28px;font-size:.72rem;background:rgba(255,255,255,.85);color:#333;padding:0;display:inline-flex;align-items:center;justify-content:center}
+  .chip-tag .color{width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,.9);padding:0}
+  .fila-sub{display:flex;gap:9px;align-items:center;padding:4px 0;border-bottom:1px dashed var(--borde);min-height:44px}
+  .fila-sub .cuad{width:24px;height:24px;flex:none;border:2px solid var(--soft);border-radius:7px;display:inline-flex;align-items:center;justify-content:center}
+  .fila-sub .cuad .ico{width:14px;height:14px;color:transparent}
   .fila-sub.on .cuad{background:var(--verde);border-color:var(--verde)}
   .fila-sub.on .cuad .ico{color:#fff}
   .fila-sub .txt{flex:1;font-size:.9rem;word-wrap:break-word}
   .fila-sub.on .txt{text-decoration:line-through;color:var(--soft)}
-  .fila-sub .x{color:var(--soft);padding:6px}
+  .fila-sub .x{color:var(--muted);padding:0;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:10px}
   .add-sub{display:flex;gap:8px;margin-top:9px}
   .add-sub input{flex:1;padding:11px 12px;border:1px solid var(--borde);border-radius:12px;background:var(--fondo)}
   .prioridad-seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
@@ -351,6 +359,7 @@
     background:#1e293b;color:#fff;border-radius:14px;padding:12px 14px;display:flex;gap:12px;align-items:center;
     box-shadow:var(--sombra-lg);transform:translateY(200px);transition:transform .28s;z-index:40;font-size:.9rem
   }
+  #avisoTexto{flex:1}
   #aviso.visible{transform:none}
   #aviso button{background:var(--tarjeta);color:var(--texto);border-radius:9px;padding:7px 13px;font-weight:800;font-size:.82rem}
   @media (prefers-reduced-motion:reduce){
@@ -385,7 +394,7 @@
 </div>
 
 <div class="buscar">
-  <span class="caja"><span id="icoBuscar"></span><input type="search" id="buscar" placeholder="Buscar tareas…" autocomplete="off"></span>
+  <span class="caja"><span id="icoBuscar"></span><input type="search" id="buscar" placeholder="Buscar tareas…" autocomplete="off" aria-label="Buscar tareas"></span>
   <select id="filtroPrio" aria-label="Filtrar por prioridad">
     <option value="">Toda</option>
     <option value="alta">Alta</option>
@@ -400,10 +409,10 @@
 <button id="sugerencia" hidden></button>
 <button id="fab" title="Nueva tarea" aria-label="Nueva tarea"></button>
 
-<nav id="tabs">
-  <button id="tabHoy" class="activa" aria-label="Vista Hoy"></button>
-  <button id="tabLista" aria-label="Vista Lista"></button>
-  <button id="tabSemana" aria-label="Vista Semana"></button>
+<nav id="tabs" role="tablist" aria-label="Vistas">
+  <button id="tabHoy" class="activa" role="tab" aria-selected="true" aria-label="Vista Hoy"></button>
+  <button id="tabLista" role="tab" aria-selected="false" aria-label="Vista Lista"></button>
+  <button id="tabSemana" role="tab" aria-selected="false" aria-label="Vista Semana"></button>
 </nav>
 
 <dialog id="hoja">
@@ -484,7 +493,8 @@
     <button class="opcion" id="btnGuardarCopia"><span id="icoGuardar"></span><span>Guardar copia JSON<small>En la carpeta de la app y compártela</small></span></button>
     <button class="opcion" id="btnCargarCopia"><span id="icoCargar"></span><span>Cargar una copia<small>Sustituye las tareas actuales</small></span></button>
     <button class="opcion" id="btnPegarCopia"><span id="icoPegar"></span><span>Pegar el JSON<small>Si no puedes abrir el archivo</small></span></button>
-    <textarea id="areaPegar" class="oculto" rows="5" placeholder="Pega aquí el contenido del .json" style="width:100%;margin-top:10px;padding:11px;border:1px solid var(--borde);border-radius:12px;background:var(--fondo)"></textarea>
+    <label for="areaPegar" class="sr-only">Pegar contenido JSON</label>
+    <textarea id="areaPegar" class="oculto" rows="5" placeholder="Pega aquí el contenido del .json" aria-label="Pegar contenido JSON de la copia" style="width:100%;margin-top:10px;padding:11px;border:1px solid var(--borde);border-radius:12px;background:var(--fondo)"></textarea>
     <div class="opciones-avisos" id="bloqueAvisos">
       <div class="estado-avisos">
         <span id="icoAvisos"></span>
@@ -514,7 +524,7 @@
   </div>
 </dialog>
 
-<div id="aviso"><span id="avisoTexto"></span><button id="avisoAccion" class="oculto">Deshacer</button></div>
+<div id="aviso" role="status" aria-live="polite" aria-atomic="true"><span id="avisoTexto"></span><button id="avisoAccion" class="oculto">Deshacer</button></div>
 
 <script>
 "use strict";
@@ -780,14 +790,18 @@ function tarjeta(t){
   div.querySelector('[data-act="borrar"]').onclick = ()=>{ borrar(t.id); };
   const cabSubs = div.querySelector('[data-act="subs"]');
   if(cabSubs){
-    cabSubs.onclick = ()=>{
+    cabSubs.onclick = (ev)=>{
+      ev.stopPropagation();
       t.subsAbiertas = !t.subsAbiertas;
       guardar();
       // Alternar in situ (sin re-render) para que corra la animación de altura
       cabSubs.classList.toggle("abierta", t.subsAbiertas);
       cabSubs.setAttribute("aria-expanded", t.subsAbiertas ? "true" : "false");
       const wrap = div.querySelector(".subs-wrap");
-      if(wrap) wrap.classList.toggle("abierta", t.subsAbiertas);
+      if(wrap){
+        wrap.classList.toggle("abierta", t.subsAbiertas);
+        wrap.style.gridTemplateRows = t.subsAbiertas ? "1fr" : "0fr";
+      }
     };
   }
   // Subtarea rápida: alta inline sin abrir la hoja de edición
@@ -886,19 +900,37 @@ function bloqueVacio(mensaje){
   d.innerHTML = ico("bandeja") + '<p>' + esc(mensaje) + '</p>';
   return d;
 }
+function tieneSubsLista(lista){ return lista.some(t=> (t.subtareas||[]).length > 0); }
+function setSubsLista(lista, abierta){
+  lista.forEach(t=>{ if((t.subtareas||[]).length) t.subsAbiertas = abierta; });
+  guardar(); render();
+}
 function grupo(titulo, lista, opcionVacio, idDia){
   const cont = document.createElement("div");
   cont.className = "bloque";
   const cab = document.createElement("div");
   cab.className = "bloque-titulo";
-  cab.innerHTML = '<h2>'+esc(titulo)+'</h2><span class="num">'+lista.length+'</span>';
+  cab.innerHTML = '<h2>'+esc(titulo)+'</h2><span class="num">'+lista.length+'</span><span class="espacio"></span>';
+  const accionesCab = document.createElement("span");
+  accionesCab.className = "sec-acciones";
+  if(lista.length && tieneSubsLista(lista)){
+    const algunaAbierta = lista.some(t=> (t.subtareas||[]).length && t.subsAbiertas !== false);
+    const btnSubs = document.createElement("button");
+    btnSubs.type = "button";
+    btnSubs.className = "sec-btn";
+    btnSubs.textContent = algunaAbierta ? "Colapsar subt." : "Expandir subt.";
+    btnSubs.setAttribute("aria-label", (algunaAbierta ? "Colapsar" : "Expandir") + " todas las subtareas de la sección " + titulo);
+    btnSubs.title = (algunaAbierta ? "Colapsar" : "Expandir") + " todas las subtareas";
+    btnSubs.onclick = ()=>{ setSubsLista(lista, !algunaAbierta); };
+    accionesCab.appendChild(btnSubs);
+  }
   if(idDia){
     const mas = document.createElement("button");
     mas.className = "enlace"; mas.type = "button"; mas.textContent = "+ añadir";
     mas.onclick = ()=>abrirHoja(null, idDia);
-    cab.appendChild(document.createElement("span")).className = "espacio";
-    cab.appendChild(mas);
+    accionesCab.appendChild(mas);
   }
+  cab.appendChild(accionesCab);
   cont.appendChild(cab);
   if(!lista.length){
     if(opcionVacio===false) return null;
@@ -1053,14 +1085,26 @@ function renderSemana(app){
     const clave = aStr(d);
     const delDia = todas.filter(t=>t.fecha===clave);
     const cont = document.createElement("div");
-    cont.className = "cal-dia"+(d.getMonth()!==lunes.getMonth()?"":"");
+    cont.className = "cal-dia";
     cont.innerHTML = '<div class="cal-dia-cab'+(clave===hoyStr()?" hoy":"")+'">'
       + '<span class="nombre">'+DIAS_LARGO[i]+'</span>'
       + '<span class="num">'+d.getDate()+' '+MESES[d.getMonth()]+'</span></div>';
+    const cabDia = cont.querySelector(".cal-dia-cab");
+    if(delDia.length && tieneSubsLista(delDia)){
+      const algunaAbierta = delDia.some(t=> (t.subtareas||[]).length && t.subsAbiertas !== false);
+      const btnSubs = document.createElement("button");
+      btnSubs.type = "button"; btnSubs.className = "sec-btn"; btnSubs.style.marginLeft = "auto";
+      btnSubs.textContent = algunaAbierta ? "Colapsar" : "Expandir";
+      btnSubs.title = (algunaAbierta ? "Colapsar" : "Expandir") + " subtareas del día";
+      btnSubs.setAttribute("aria-label", (algunaAbierta ? "Colapsar" : "Expandir") + " todas las subtareas de " + DIAS_LARGO[i]);
+      btnSubs.onclick = ()=>{ setSubsLista(delDia, !algunaAbierta); };
+      cabDia.appendChild(btnSubs);
+    }
     const masBtn = document.createElement("button");
     masBtn.className = "mas"; masBtn.type = "button"; masBtn.textContent = "+ añadir";
     masBtn.onclick = ()=>abrirHoja(null, clave);
-    cont.querySelector(".cal-dia-cab").appendChild(masBtn);
+    if(!cabDia.querySelector(".sec-btn")) masBtn.style.marginLeft = "auto";
+    cabDia.appendChild(masBtn);
     if(delDia.length){
       const l = document.createElement("div"); l.className = "lista";
       delDia.forEach(t=>l.appendChild(tarjeta(t)));
@@ -1071,13 +1115,28 @@ function renderSemana(app){
   const sinF = todas.filter(t=>!t.fecha);
   const caja = document.createElement("div");
   caja.className = "sinfecha";
-  caja.innerHTML = '<h3>Sin fecha ('+sinF.length+')</h3>';
+  const cabSF = document.createElement("div");
+  cabSF.style.cssText = "display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px";
+  cabSF.innerHTML = '<h3 style="font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin:0">Sin fecha ('+sinF.length+')</h3><span style="flex:1"></span>';
+  if(sinF.length && tieneSubsLista(sinF)){
+    const algunaAbierta = sinF.some(t=> (t.subtareas||[]).length && t.subsAbiertas !== false);
+    const btnSubs = document.createElement("button");
+    btnSubs.type = "button"; btnSubs.className = "sec-btn";
+    btnSubs.textContent = algunaAbierta ? "Colapsar subt." : "Expandir subt.";
+    btnSubs.setAttribute("aria-label", (algunaAbierta ? "Colapsar" : "Expandir") + " todas las subtareas sin fecha");
+    btnSubs.onclick = ()=>{ setSubsLista(sinF, !algunaAbierta); };
+    cabSF.appendChild(btnSubs);
+  }
+  caja.appendChild(cabSF);
   if(sinF.length){
     const l = document.createElement("div"); l.className = "lista";
     sinF.forEach(t=>l.appendChild(tarjeta(t)));
     caja.appendChild(l);
   }else{
-    caja.innerHTML += '<p style="font-size:.83rem;color:var(--soft)">Ninguna tarea sin día.</p>';
+    const p = document.createElement("p");
+    p.style.cssText = "font-size:.83rem;color:var(--muted)";
+    p.textContent = "Ninguna tarea sin día.";
+    caja.appendChild(p);
   }
   app.appendChild(caja);
   document.getElementById("sAtras").onclick = ()=>{ calSemanaOffset--; render(); };
@@ -1110,6 +1169,18 @@ function duplicar(id){
 
 /* ---------- Hoja (formulario) ---------- */
 const hoja = document.getElementById("hoja");
+function guardarFocoDialogo(dlg){ dlg._disparador = document.activeElement instanceof HTMLElement ? document.activeElement : null; }
+function restaurarFocoDialogo(dlg){
+  const d = dlg && dlg._disparador;
+  if(d && document.contains(d)){ try{ d.focus(); }catch(e){} }
+  if(dlg) dlg._disparador = null;
+}
+[hoja, document.getElementById("hojaCopias"), document.getElementById("bienvenida")].forEach(d=>{
+  if(!d) return;
+  d.addEventListener("close", ()=>restaurarFocoDialogo(d));
+  d.addEventListener("cancel", ()=>{ /* close disparará restauración */ });
+  d.addEventListener("click", (ev)=>{ if(ev.target === d) d.close(); });
+});
 function marcarPrio(){
   document.querySelectorAll("#prioSeg button").forEach(b=>{
     b.className = b.dataset.p===formPrio ? "on-"+formPrio : "";
@@ -1181,8 +1252,9 @@ function abrirHoja(t, fechaInicial){
   document.getElementById("btnBorrarHoja").style.display = t ? "" : "none";
   marcarPrio(); renderTagsForm(); renderSubsForm(); pintarErrorRecordatorio();
   document.getElementById("sugerencia").hidden = true;   // no tapar la hoja
+  guardarFocoDialogo(hoja);
   hoja.showModal();
-  if(!t) setTimeout(()=>document.getElementById("fTitulo").focus(), 120);
+  setTimeout(()=>document.getElementById(t ? "fTitulo" : "fTitulo").focus(), 120);
 }
 document.getElementById("fab").onclick = ()=>abrirHoja(null);
 document.getElementById("btnCerrarHoja").onclick = ()=>{ hoja.close(); renderSugerencia(); };
@@ -1235,8 +1307,8 @@ function agregarSub(){
 document.getElementById("formulario").addEventListener("submit", ev=>{
   ev.preventDefault();
   const titulo = document.getElementById("fTitulo").value.trim();
-  if(!titulo){ avisar("Ponle un título a la tarea."); return; }
-  if(pintarErrorRecordatorio()){ avisar("El recordatorio va después de la fecha límite."); return; }
+  if(!titulo){ document.getElementById("fTitulo").focus(); avisar("Ponle un título a la tarea."); return; }
+  if(pintarErrorRecordatorio()){ document.getElementById("fRecordatorio").focus(); avisar("El recordatorio va después de la fecha límite."); return; }
   const pendienteTag = document.getElementById("fTagInput").value.trim().toLowerCase();
   if(pendienteTag && !formTags.includes(pendienteTag)){ formTags.push(pendienteTag); colorDeTag(pendienteTag); }
   const datos = {
@@ -1266,9 +1338,13 @@ document.getElementById("formulario").addEventListener("submit", ev=>{
 /* ---------- Navegación ---------- */
 function setTab(modo){
   vista.modo = modo;
-  document.getElementById("tabHoy").classList.toggle("activa", modo==="hoy");
-  document.getElementById("tabLista").classList.toggle("activa", modo==="lista");
-  document.getElementById("tabSemana").classList.toggle("activa", modo==="semana");
+  [["tabHoy","hoy"],["tabLista","lista"],["tabSemana","semana"]].forEach(([id,m])=>{
+    const b = document.getElementById(id);
+    const on = m===modo;
+    b.classList.toggle("activa", on);
+    b.setAttribute("aria-selected", on ? "true" : "false");
+    b.tabIndex = on ? 0 : -1;
+  });
   try{ localStorage.setItem(CLAVE_VISTA, JSON.stringify({modo})); }catch(e){}
   render();
   window.scrollTo(0,0);
@@ -1292,8 +1368,8 @@ function aplicarTema(tema){
   document.documentElement.dataset.tema = tema==="oscuro" ? "oscuro" : "";
   const boton = document.getElementById("btnTema");
   boton.innerHTML = ico(tema==="oscuro" ? "sol" : "luna");
-  const meta = document.querySelector('meta[name="theme-color"][media*="dark"]');
-  if(meta) meta.setAttribute("content", "#0b1220");
+  const meta = document.getElementById("metaThemeColor");
+  if(meta) meta.setAttribute("content", tema==="oscuro" ? "#0b1220" : "#f8fafc");
 }
 document.getElementById("btnTema").onclick = ()=>{
   const oscuro = document.documentElement.dataset.tema==="oscuro";
@@ -1368,7 +1444,7 @@ document.getElementById("btnSonido").onclick = ()=>{
 /* ---------- Copias (JSON) ---------- */
 const hojaCopias = document.getElementById("hojaCopias");
 document.getElementById("btnCopias").innerHTML = ico("guardar");
-document.getElementById("btnCopias").onclick = ()=>{ pintarEstadoAvisos(); hojaCopias.showModal(); };
+document.getElementById("btnCopias").onclick = ()=>{ pintarEstadoAvisos(); guardarFocoDialogo(hojaCopias); hojaCopias.showModal(); };
 document.getElementById("btnCerrarCopias").onclick = ()=>{
   hojaCopias.close();
   document.getElementById("areaPegar").classList.add("oculto");
@@ -1557,7 +1633,9 @@ function iniciar(){
   // Bienvenida: solo la primera vez (flag propio; no se confunde con datos existentes)
   try{
     if(!localStorage.getItem("mis-tareas-bienvenida")){
-      document.getElementById("bienvenida").showModal();
+      const b = document.getElementById("bienvenida");
+      guardarFocoDialogo(b);
+      b.showModal();
     }
   }catch(e){}
   revisarRecordatorios();
