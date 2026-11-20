@@ -92,6 +92,10 @@
     min-height:44px;font-size:.82rem;color:var(--muted);display:inline-flex;align-items:center;gap:6px
   }
   .pista.activa{font-weight:800;color:var(--texto);border-color:var(--azul);background:var(--azul-suave)}
+  .pista.peligro{color:#dc2626;border-color:#fecaca;background:#fef2f2}
+  .pista.peligro.activa{color:#fff;border-color:#dc2626;background:#dc2626}
+  :root[data-tema="oscuro"] .pista.peligro{color:#fca5a5;border-color:#7f1d1d;background:#2a0f0f}
+  :root[data-tema="oscuro"] .pista.peligro.activa{color:#fff;border-color:#dc2626;background:#b91c1c}
   .pista .punto{width:9px;height:9px;border-radius:50%}
 
   /* ---------- Secciones ---------- */
@@ -110,6 +114,14 @@
   .progreso-global .fila{display:flex;align-items:baseline;gap:8px}
   .progreso-global .gran{font-size:1.55rem;font-weight:900;color:var(--azul);font-variant-numeric:tabular-nums}
   .progreso-global .det{font-size:.82rem;color:var(--muted)}
+  .progreso-global .racha{
+    margin-left:auto;display:inline-flex;align-items:center;gap:4px;font-size:.78rem;font-weight:800;
+    color:#c2410c;background:#ffedd5;border-radius:99px;padding:4px 9px
+  }
+  .progreso-global .racha .ico{width:13px;height:13px}
+  :root[data-tema="oscuro"] .progreso-global .racha{color:#fdba74;background:#431407}
+  mark{background:#fde68a;color:inherit;border-radius:3px;padding:0 1px}
+  :root[data-tema="oscuro"] mark{background:#854d0e;color:#fef9c3}
   .barra{height:7px;background:var(--fondo);border:1px solid var(--borde);border-radius:99px;margin-top:9px;overflow:hidden}
   .barra>div{height:100%;background:linear-gradient(90deg,var(--verde),#34d399);border-radius:99px;transition:width .45s ease}
   .dias{display:flex;gap:5px;margin-top:11px;align-items:flex-end;height:44px}
@@ -122,7 +134,8 @@
   .lista{display:flex;flex-direction:column;gap:9px;padding-top:4px}
   .tarea{
     background:var(--tarjeta);border:1px solid var(--borde);border-left:4px solid var(--borde);
-    border-radius:var(--radio-sm);padding:11px 12px;box-shadow:var(--sombra);display:flex;gap:11px;align-items:flex-start
+    border-radius:var(--radio-sm);padding:11px 12px;box-shadow:var(--sombra);display:flex;gap:11px;align-items:flex-start;
+    position:relative;transition:transform .18s ease, opacity .18s ease
   }
   .tarea.vencida{border-color:var(--rojo);background:var(--rojo-suave)}
   .tarea.hecha{opacity:.62}
@@ -157,7 +170,38 @@
   .ins.recur{color:var(--violeta);background:var(--violeta-suave);border-color:transparent}
   .ins.rec{color:#0f766e;background:var(--verde-suave);border-color:transparent}
   .ins.tag{color:#fff;border-color:transparent;font-weight:700}
-  .subs{margin-top:8px;display:flex;flex-direction:column;gap:1px}
+  /* Subtareas plegables: cabecera + altura animada (0fr→1fr, sin JS de scroll) */
+  .subs-cab{
+    display:flex;align-items:center;gap:7px;width:100%;margin-top:9px;padding:9px 4px;min-height:40px;
+    background:var(--fondo);border:1px solid var(--borde);border-radius:10px;
+    font-size:.78rem;font-weight:700;color:var(--muted)
+  }
+  .subs-cab .ico{width:14px;height:14px;transition:transform .2s ease;flex:none}
+  .subs-cab.abierta .ico{transform:rotate(90deg)}
+  .subs-cab .sub-cuenta{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--soft);font-weight:600}
+  .subs-wrap{display:grid;grid-template-rows:0fr;transition:grid-template-rows .22s ease}
+  .subs-wrap.abierta{grid-template-rows:1fr}
+  /* Sin padding aquí: cuenta en el min-content del track 0fr y el wrap no bajaría a 0 */
+  .subs-inner{overflow:hidden;min-height:0}
+  /* Añadir subtarea desde la tarjeta */
+  .sub-addbtn{
+    display:flex;align-items:center;gap:6px;width:100%;margin-top:6px;padding:10px 8px;min-height:42px;
+    background:transparent;border:1px dashed var(--borde);border-radius:10px;
+    font-size:.8rem;font-weight:700;color:var(--soft)
+  }
+  .sub-addbtn .ico{width:14px;height:14px}
+  .sub-rapida{display:flex;gap:6px;margin-top:6px}
+  .sub-rapida input{
+    flex:1;min-width:0;padding:10px 12px;min-height:42px;font-size:.85rem;
+    border:1px solid var(--borde);border-radius:10px;background:var(--fondo);color:var(--texto)
+  }
+  .sub-rapida button{
+    flex:none;width:44px;min-height:42px;border-radius:10px;border:1px solid var(--azul);
+    background:var(--azul-suave);color:var(--azul);font-size:1.15rem;font-weight:800
+  }
+  .subs{margin-top:7px;display:flex;flex-direction:column;gap:1px}
+  .tarea.deslizo-ok{box-shadow:inset 4px 0 0 var(--verde)}
+  .tarea.deslizo-no{box-shadow:inset -4px 0 0 #dc2626}
   .sub{display:flex;gap:9px;align-items:flex-start;font-size:.85rem;color:var(--muted);padding:9px 4px;border-radius:8px;min-height:44px}
   .sub .cuad{
     width:22px;height:22px;flex:none;border:2px solid var(--soft);border-radius:7px;margin-top:-1px;
@@ -167,7 +211,6 @@
   .sub.on .cuad{background:var(--verde);border-color:var(--verde)}
   .sub.on .cuad .ico{color:#fff}
   .sub.on span{text-decoration:line-through;color:var(--soft)}
-  .sub-prog{font-size:.72rem;color:var(--soft);margin-top:5px;font-variant-numeric:tabular-nums}
   .acciones{display:flex;gap:2px;margin-top:9px;flex-wrap:wrap}
   .acciones button{
     border-radius:10px;padding:10px 12px;min-height:44px;font-size:.8rem;color:var(--muted);
@@ -206,6 +249,19 @@
   #fab:active{transform:scale(.94)}
   #fab .ico{width:26px;height:26px}
 
+  /* Sugerencia: continuar la última tarea incompleta (junto al FAB) */
+  #sugerencia{
+    position:fixed;right:16px;bottom:calc(var(--barra-alto) + env(safe-area-inset-bottom,0px) + 86px);
+    max-width:calc(100vw - 96px);z-index:34;display:flex;align-items:center;gap:8px;
+    padding:10px 14px;min-height:44px;border-radius:99px;border:1px solid var(--borde);
+    background:var(--tarjeta);color:var(--texto);box-shadow:var(--sombra-lg);
+    font-size:.8rem;font-weight:700;text-align:left;overflow:hidden;white-space:nowrap;text-overflow:ellipsis
+  }
+  #sugerencia .ico{width:15px;height:15px;flex:none;color:var(--azul)}
+  #sugerencia span{overflow:hidden;text-overflow:ellipsis}
+  #sugerencia[hidden]{display:none}
+  #sugerencia:active{transform:scale(.97)}
+
   /* ---------- Navegación inferior ---------- */
   #tabs{
     position:fixed;left:0;right:0;bottom:0;z-index:30;height:calc(var(--barra-alto) + env(safe-area-inset-bottom,0px));
@@ -237,6 +293,8 @@
   .doble{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .error-campo{display:none;margin-top:5px;font-size:.78rem;color:var(--rojo);font-weight:700}
   .error-campo.visible{display:block}
+  .tips{margin:0 0 16px;padding-left:20px;display:flex;flex-direction:column;gap:11px;font-size:.88rem;line-height:1.45;color:var(--muted)}
+  .tips b{color:var(--texto)}
   .campo input.con-error{border-color:var(--rojo);outline:2px solid var(--rojo);outline-offset:-2px}
   .chips-form{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
   .chip-tag{display:inline-flex;align-items:center;gap:6px;border-radius:99px;padding:5px 7px 5px 12px;font-size:.8rem;font-weight:700;color:#fff}
@@ -279,6 +337,14 @@
   .opcion .ico{width:19px;height:19px;color:var(--azul);flex:none}
   .opcion small{display:block;font-size:.76rem;color:var(--soft);font-weight:500;margin-top:2px}
 
+  /* ---------- Estado de avisos del sistema ---------- */
+  .opciones-avisos{margin-top:14px;padding-top:12px;border-top:1px dashed var(--borde)}
+  .estado-avisos{display:flex;gap:11px;align-items:center}
+  .estado-avisos .ico{width:19px;height:19px;color:var(--azul);flex:none}
+  .estado-avisos b{font-size:.88rem}
+  .estado-avisos small{display:block;font-size:.76rem;color:var(--soft);margin-top:2px}
+  .estado-avisos small.bloqueado{color:#dc2626;font-weight:700}
+
   /* ---------- Aviso (toast) ---------- */
   #aviso{
     position:fixed;left:12px;right:12px;bottom:calc(var(--barra-alto) + env(safe-area-inset-bottom,0px) + 88px);
@@ -312,6 +378,7 @@
     </h1>
     <span class="espacio"></span>
     <button class="icon-btn" id="btnCopias" title="Copias de seguridad" aria-label="Copias de seguridad"></button>
+    <button class="icon-btn" id="btnSonido" title="Sonido de recordatorios" aria-label="Sonido de recordatorios" aria-pressed="true"></button>
     <button class="icon-btn" id="btnTema" title="Cambiar tema" aria-label="Cambiar tema"></button>
   </div>
   <div class="recuento" id="recuento"></div>
@@ -330,6 +397,7 @@
 
 <main id="app"></main>
 
+<button id="sugerencia" hidden></button>
 <button id="fab" title="Nueva tarea" aria-label="Nueva tarea"></button>
 
 <nav id="tabs">
@@ -417,11 +485,35 @@
     <button class="opcion" id="btnCargarCopia"><span id="icoCargar"></span><span>Cargar una copia<small>Sustituye las tareas actuales</small></span></button>
     <button class="opcion" id="btnPegarCopia"><span id="icoPegar"></span><span>Pegar el JSON<small>Si no puedes abrir el archivo</small></span></button>
     <textarea id="areaPegar" class="oculto" rows="5" placeholder="Pega aquí el contenido del .json" style="width:100%;margin-top:10px;padding:11px;border:1px solid var(--borde);border-radius:12px;background:var(--fondo)"></textarea>
+    <div class="opciones-avisos" id="bloqueAvisos">
+      <div class="estado-avisos">
+        <span id="icoAvisos"></span>
+        <div>
+          <b>Avisos de recordatorio</b>
+          <small id="estadoAvisos">…</small>
+        </div>
+      </div>
+      <button class="opcion" id="btnPermisoAvisos" style="margin-top:8px"><span id="icoCampana"></span><span>Activar avisos del sistema<small>Notificación aunque la app esté cerrada</small></span></button>
+    </div>
     <div class="botones"><button type="button" class="btn" id="btnCerrarCopias">Cerrar</button></div>
   </div>
 </dialog>
 
 <input type="file" id="archivoCopia" accept=".json,application/json" hidden>
+
+<dialog id="bienvenida">
+  <div class="asidero"></div>
+  <div class="hoja">
+    <h2>Bienvenida a Mis Tareas mini</h2>
+    <ul class="tips">
+      <li><b>Hoy / Lista / Semana</b> — lo que toca hoy, todo lo tuyo y la vista de 7 días.</li>
+      <li><b>Toca la casilla</b> para completar; <b>desliza</b> la tarjeta a la derecha para completar y a la izquierda para borrar (con deshacer).</li>
+      <li><b>Los datos viven solo en este teléfono.</b> Para llevarlos al PC usa <i>Copias de seguridad → Guardar copia JSON</i> y al revés con <i>Cargar una copia</i>.</li>
+    </ul>
+    <div class="botones"><button type="button" class="btn primario" id="btnEntendido">Entendido</button></div>
+  </div>
+</dialog>
+
 <div id="aviso"><span id="avisoTexto"></span><button id="avisoAccion" class="oculto">Deshacer</button></div>
 
 <script>
@@ -470,13 +562,36 @@ const CAMINOS_ICO = {
   abrir:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 8 5-5 5 5"/><path d="M12 3v12"/>',
   texto:'<path d="M4 7V5h16v2"/><path d="M9 20h6"/><path d="M12 5v15"/>',
   atras:'<path d="m15 18-6-6 6-6"/>',
-  adelante:'<path d="m9 18 6-6-6-6"/>'
+  adelante:'<path d="m9 18 6-6-6-6"/>',
+  volumen:'<path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/>',
+  volumenOff:'<path d="M11 5 6 9H3v6h3l5 4z"/><path d="m17 9 4 6"/><path d="m21 9-4 6"/>',
+  llama:'<path d="M12 3c1.5 3 5 4.5 5 9a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5 0 1.5 1 2.5 2 2.5 0-3 .5-5 1-7z"/>',
+  flechaAbajo:'<path d="M12 5v14"/><path d="m6 13 6 6 6-6"/>'
 };
 function ico(nombre){
   return '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"'
     + ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(CAMINOS_ICO[nombre]||"")+'</svg>';
 }
 function esc(s){ const d=document.createElement("div"); d.textContent=String(s==null?"":s); return d.innerHTML; }
+/* Resalta la coincidencia de la búsqueda dentro de texto ya escapado */
+function resaltar(textoEscapado){
+  const q = vista.busqueda.trim();
+  if(!q) return textoEscapado;
+  const patron = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  try{ return textoEscapado.replace(new RegExp("("+patron+")","gi"), "<mark>$1</mark>"); }
+  catch(e){ return textoEscapado; }
+}
+/* Racha: días consecutivos con al menos una tarea completada (hoy o, si aún no, hasta ayer) */
+function rachaDias(){
+  const hechasPorDia = new Set();
+  tareas.forEach(t=>{ if(t.estado==="completada" && t.completadaEl) hechasPorDia.add(claveLocalDe(t.completadaEl)); });
+  if(!hechasPorDia.size) return 0;
+  let n = 0;
+  const d = new Date();
+  if(!hechasPorDia.has(aStr(d))) d.setDate(d.getDate()-1);   // hoy aún sin completar no rompe la racha
+  while(hechasPorDia.has(aStr(d))){ n++; d.setDate(d.getDate()-1); }
+  return n;
+}
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
 function hoyStr(){ const d=new Date(); return aStr(d); }
 function aStr(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
@@ -514,6 +629,8 @@ function normalizar(t){
     subtareas: Array.isArray(t.subtareas)
       ? t.subtareas.filter(s=>s && typeof s.texto==="string").map(s=>({id:s.id||uid(), texto:s.texto, hecha:!!s.hecha}))
       : [],
+    // Plegado de subtareas: abierto por defecto si son pocas (3 o menos)
+    subsAbiertas: typeof t.subsAbiertas === "boolean" ? t.subsAbiertas : (Array.isArray(t.subtareas) ? t.subtareas.length <= 3 : true),
     recur: ["diaria","semanal","mensual"].includes(t.recur) ? t.recur : "no",
     creadaEl: typeof t.creadaEl==="number" ? t.creadaEl : Date.now(),
     completadaEl: t.completadaEl || t.hechaEl || null,
@@ -544,9 +661,12 @@ function cambiarEstado(t, nuevo){
       if(t.fecha) copia.fecha = avanzarFecha(t.fecha, t.recur);
       if(t.recordatorio && copia.fecha) copia.recordatorio = copia.fecha + t.recordatorio.slice(10);
       tareas.push(copia);
+      programarRecordatorio(copia);   // la instancia siguiente también avisa en el APK
     }
   }
   if(nuevo!=="completada") t.completadaEl = null;
+  // En el APK: completar apaga la alarma; reabrir la reprograma
+  if(nuevo==="completada") cancelarRecordatorio(t.id); else if(t.recordatorio) programarRecordatorio(t);
 }
 function colorDeTag(tag){
   if(!coloresTag[tag]){
@@ -564,7 +684,7 @@ let formTags = [];
 let formSubs = [];
 let formPrio = "media";
 let ultimoBorrado = null;
-let vista = { modo:"hoy", busqueda:"", prioridad:"", etiqueta:null };
+let vista = { modo:"hoy", busqueda:"", prioridad:"", etiqueta:null, soloVencidas:false };
 let calSemanaOffset = 0;
 
 /* ---------- Persistencia (solo localStorage) ---------- */
@@ -584,6 +704,7 @@ function guardar(){
 /* ---------- Filtros ---------- */
 function filtrar(lista){
   let l = lista.slice();
+  if(vista.soloVencidas) l = l.filter(esVencida);
   if(vista.etiqueta) l = l.filter(t=>t.etiquetas.includes(vista.etiqueta));
   if(vista.prioridad) l = l.filter(t=>t.prioridad===vista.prioridad);
   if(vista.busqueda){
@@ -621,14 +742,25 @@ function tarjeta(t){
       '<button class="marca'+(t.estado==="completada"?" on":"")+'" data-act="completar" aria-label="'+(t.estado==="completada"?"Reabrir":"Completar")+'">'
         + '<span class="caja">'+ico("check")+'</span></button>'
     + '<div class="cuerpo">'
-      + '<div class="titulo">'+esc(t.titulo)+'</div>'
-      + (t.descripcion ? '<div class="nota">'+esc(t.descripcion)+'</div>' : '')
+      + '<div class="titulo">'+resaltar(esc(t.titulo))+'</div>'
+      + (t.descripcion ? '<div class="nota">'+resaltar(esc(t.descripcion))+'</div>' : '')
       + '<div class="insignias">'+insignias+'</div>'
       + (subs.length
-          ? '<div class="subs">'+subs.map(s=>'<button class="sub'+(s.hecha?" on":"")+'" data-act="sub" data-sub="'+s.id+'">'
-              + '<span class="cuad">'+ico("check")+'</span><span>'+esc(s.texto)+'</span></button>').join("")+'</div>'
-            + '<div class="sub-prog">Subtareas '+hechas+'/'+subs.length+' · '+pct+'%</div>'
-          : '')
+          ? '<button type="button" class="subs-cab'+(t.subsAbiertas?" abierta":"")+'" data-act="subs" aria-expanded="'+(t.subsAbiertas?"true":"false")+'">'
+              + ico("adelante") + '<span>Subtareas</span>'
+              + '<span class="sub-cuenta">'+hechas+'/'+subs.length+' · '+pct+'%</span>'
+            + '</button>'
+            + '<div class="subs-wrap'+(t.subsAbiertas?" abierta":"")+'"><div class="subs-inner">'
+              + subs.map(s=>'<button class="sub'+(s.hecha?" on":"")+'" data-act="sub" data-sub="'+s.id+'">'
+                  + '<span class="cuad">'+ico("check")+'</span><span>'+esc(s.texto)+'</span></button>').join("")
+              + '<div class="sub-rapida"><input type="text" data-act="subinput" placeholder="Añadir subtarea…" '
+                  + 'aria-label="Añadir subtarea a '+esc(t.titulo)+'"><button type="button" data-act="subadd" aria-label="Añadir">+</button></div>'
+            + '</div></div>'
+          : '<div class="subs-wrap abierta"><div class="subs-inner">'
+              + '<button type="button" class="sub-addbtn" data-act="subshow">'+ico("mas")+' Añadir subtarea</button>'
+              + '<div class="sub-rapida oculto"><input type="text" data-act="subinput" placeholder="Añadir subtarea…" '
+                + 'aria-label="Añadir subtarea a '+esc(t.titulo)+'"><button type="button" data-act="subadd" aria-label="Añadir">+</button></div>'
+            + '</div></div>')
       + '<div class="acciones">'
         + '<button data-act="editar">'+ico("lapiz")+'Editar</button>'
         + '<button data-act="duplicar" aria-label="Duplicar">'+ico("copiar")+'</button>'
@@ -646,13 +778,105 @@ function tarjeta(t){
   div.querySelector('[data-act="editar"]').onclick = ()=>abrirHoja(t);
   div.querySelector('[data-act="duplicar"]').onclick = ()=>{ duplicar(t.id); };
   div.querySelector('[data-act="borrar"]').onclick = ()=>{ borrar(t.id); };
+  const cabSubs = div.querySelector('[data-act="subs"]');
+  if(cabSubs){
+    cabSubs.onclick = ()=>{
+      t.subsAbiertas = !t.subsAbiertas;
+      guardar();
+      // Alternar in situ (sin re-render) para que corra la animación de altura
+      cabSubs.classList.toggle("abierta", t.subsAbiertas);
+      cabSubs.setAttribute("aria-expanded", t.subsAbiertas ? "true" : "false");
+      const wrap = div.querySelector(".subs-wrap");
+      if(wrap) wrap.classList.toggle("abierta", t.subsAbiertas);
+    };
+  }
+  // Subtarea rápida: alta inline sin abrir la hoja de edición
+  const campoSub = div.querySelector('[data-act="subinput"]');
+  const btnSub = div.querySelector('[data-act="subadd"]');
+  const btnShow = div.querySelector('[data-act="subshow"]');
+  if(btnShow){
+    btnShow.onclick = ()=>{
+      btnShow.classList.add("oculto");
+      const wrap = div.querySelector(".subs-wrap");
+      if(wrap) wrap.classList.add("abierta");
+      campoSub.classList.remove("oculto");
+      campoSub.focus();
+    };
+  }
+  const altaSub = ()=>{
+    const texto = campoSub.value.trim();
+    if(!texto) return;
+    t.subtareas.push({ id: uid(), texto, hecha: false });
+    if(t.subtareas.length === 1) t.subsAbiertas = true;   // la primera siempre se ve
+    guardar(); render();
+    // Tras re-render, enfocar el campo otra vez para encadenar
+    const nuevo = document.querySelector('.tarea[data-id="'+t.id+'"] [data-act="subinput"]');
+    if(nuevo){ nuevo.focus(); }
+  };
+  if(btnSub){
+    btnSub.onclick = altaSub;
+    campoSub.addEventListener("keydown", ev=>{
+      if(ev.key === "Enter"){ ev.preventDefault(); altaSub(); }
+    });
+  }
   div.querySelectorAll('[data-act="sub"]').forEach(b=>{
     b.onclick = ()=>{
       const s = subs.find(x=>x.id===b.dataset.sub);
       if(s){ s.hecha = !s.hecha; vibrar(); guardar(); render(); }
     };
   });
+  anadirDeslizar(div, t);
   return div;
+}
+
+/* Gesto: deslizar a la derecha completa, a la izquierda borra (con deshacer) */
+function anadirDeslizar(div, t){
+  let x0 = null, y0 = null, dx = 0, activo = false;
+  const umbral = 70;
+  div.addEventListener("touchstart", ev=>{
+    if(ev.touches.length !== 1) return;
+    // No secuestrar el arrastre si el toque empieza en un control
+    if(ev.target.closest("button, select, input")) return;
+    x0 = ev.touches[0].clientX; y0 = ev.touches[0].clientY; dx = 0; activo = false;
+    div.style.transition = "none";
+  }, { passive: true });
+  div.addEventListener("touchmove", ev=>{
+    if(x0 === null) return;
+    const ddx = ev.touches[0].clientX - x0;
+    const ddy = ev.touches[0].clientY - y0;
+    if(!activo){
+      if(Math.abs(ddy) > Math.abs(ddx)){ x0 = null; div.style.transition = ""; return; }  // scroll vertical
+      if(Math.abs(ddx) > 8) activo = true; else return;
+    }
+    dx = ddx;
+    div.style.transform = "translateX("+dx+"px)";
+    div.style.opacity = String(Math.max(0.45, 1 - Math.abs(dx)/260));
+    div.classList.toggle("deslizo-ok", dx > 0);
+    div.classList.toggle("deslizo-no", dx < 0);
+  }, { passive: true });
+  const soltar = ()=>{
+    if(x0 === null) return;
+    const movido = dx; x0 = null;
+    div.style.transition = "transform .18s ease, opacity .18s ease";
+    div.style.transform = ""; div.style.opacity = "";
+    div.classList.remove("deslizo-ok", "deslizo-no");
+    if(!activo) return;
+    if(movido > umbral){
+      cambiarEstado(t, t.estado === "completada" ? "pendiente" : "completada");
+      vibrar(); guardar(); render();
+      avisar(movido > 0 && t.estado === "completada" ? "Tarea completada" : "Tarea reabierta", false);
+    }else if(movido < -umbral){
+      borrar(t.id);
+    }
+    activo = false;
+  };
+  div.addEventListener("touchend", soltar, { passive: true });
+  div.addEventListener("touchcancel", ()=>{
+    x0 = null; activo = false;
+    div.style.transition = "transform .18s ease, opacity .18s ease";
+    div.style.transform = ""; div.style.opacity = "";
+    div.classList.remove("deslizo-ok", "deslizo-no");
+  }, { passive: true });
 }
 
 function anadir(padre, hijo){ if(hijo) padre.appendChild(hijo); }
@@ -699,6 +923,20 @@ function render(){
   if(vista.modo==="hoy") renderHoy(app);
   else if(vista.modo==="lista") renderLista(app);
   else renderSemana(app);
+  renderSugerencia();
+}
+
+/* Idea «continuar»: si hay algo empezado (o lo último pendiente), el FAB lo sugiere */
+function renderSugerencia(){
+  const btn = document.getElementById("sugerencia");
+  const empezadas = tareas.filter(t=>t.estado==="progreso" || t.estado==="pausada");
+  const pendientes = tareas.filter(t=>t.estado==="pendiente");
+  const candidata = empezadas[0] || pendientes[pendientes.length-1];
+  if(!candidata || document.getElementById("hoja").open){ btn.hidden = true; return; }
+  btn.hidden = false;
+  btn.innerHTML = ico(empezadas.length ? "reloj" : "adelante") + '<span>' + esc(candidata.titulo) + '</span>';
+  btn.title = "Continuar: " + candidata.titulo;
+  btn.onclick = ()=>abrirHoja(candidata);
 }
 
 function renderRecuento(){
@@ -719,10 +957,19 @@ function renderPistas(){
   c.innerHTML = "";
   const etiquetas = [...new Set(tareas.flatMap(t=>t.etiquetas))].sort((a,b)=>a.localeCompare(b,"es"));
   const bTodas = document.createElement("button");
-  bTodas.className = "pista"+(vista.etiqueta===null?" activa":"");
+  bTodas.className = "pista"+(vista.etiqueta===null && !vista.soloVencidas?" activa":"");
   bTodas.textContent = "Todas";
-  bTodas.onclick = ()=>{ vista.etiqueta=null; render(); };
+  bTodas.onclick = ()=>{ vista.etiqueta=null; vista.soloVencidas=false; render(); };
   c.appendChild(bTodas);
+  // Filtro rápido: solo vencidas
+  const nVenc = tareas.filter(esVencida).length;
+  if(nVenc){
+    const bVenc = document.createElement("button");
+    bVenc.className = "pista peligro"+(vista.soloVencidas?" activa":"");
+    bVenc.textContent = "Vencidas ("+nVenc+")";
+    bVenc.onclick = ()=>{ vista.soloVencidas = !vista.soloVencidas; vista.etiqueta=null; render(); };
+    c.appendChild(bVenc);
+  }
   etiquetas.forEach(e=>{
     const b = document.createElement("button");
     b.className = "pista"+(vista.etiqueta===e?" activa":"");
@@ -743,8 +990,11 @@ function renderHoy(app){
 
   const prog = document.createElement("div");
   prog.className = "progreso-global";
+  const racha = rachaDias();
   prog.innerHTML = '<div class="fila"><span class="gran">'+pct+'%</span>'
-    + '<span class="det">'+hechas+' de '+total+' tareas completadas</span></div>'
+    + '<span class="det">'+hechas+' de '+total+' tareas completadas</span>'
+    + (racha ? '<span class="racha" title="Días seguidos completando al menos una tarea">'+ico("llama")+racha+' d</span>' : '')
+    + '</div>'
     + '<div class="barra"><div style="width:'+pct+'%"></div></div>';
   const dias = document.createElement("div");
   dias.className = "dias";
@@ -840,6 +1090,7 @@ function borrar(id){
   if(i<0) return;
   ultimoBorrado = { tarea: tareas[i], indice: i };
   tareas.splice(i,1); guardar(); render();
+  cancelarRecordatorio(id);
   avisar("Tarea borrada", true);
 }
 function duplicar(id){
@@ -929,11 +1180,13 @@ function abrirHoja(t, fechaInicial){
   formSubs = t ? JSON.parse(JSON.stringify(t.subtareas||[])) : [];
   document.getElementById("btnBorrarHoja").style.display = t ? "" : "none";
   marcarPrio(); renderTagsForm(); renderSubsForm(); pintarErrorRecordatorio();
+  document.getElementById("sugerencia").hidden = true;   // no tapar la hoja
   hoja.showModal();
   if(!t) setTimeout(()=>document.getElementById("fTitulo").focus(), 120);
 }
 document.getElementById("fab").onclick = ()=>abrirHoja(null);
-document.getElementById("btnCerrarHoja").onclick = ()=>hoja.close();
+document.getElementById("btnCerrarHoja").onclick = ()=>{ hoja.close(); renderSugerencia(); };
+hoja.addEventListener("close", ()=>renderSugerencia());   // Esc o clic fuera también
 document.getElementById("btnBorrarHoja").innerHTML = ico("papelera");
 document.getElementById("btnBorrarHoja").onclick = ()=>{
   if(editandoId){ const id = editandoId; hoja.close(); borrar(id); }
@@ -997,13 +1250,16 @@ document.getElementById("formulario").addEventListener("submit", ev=>{
     subtareas: formSubs.slice()
   };
   const estadoForm = editandoId ? (tareas.find(x=>x.id===editandoId)||{estado:"pendiente"}).estado : "pendiente";
+  let guardada = null;
   if(editandoId){
     const t = tareas.find(x=>x.id===editandoId);
-    if(t){ Object.assign(t, datos); t.estado = estadoForm; }
+    if(t){ Object.assign(t, datos); t.estado = estadoForm; guardada = t; }
   }else{
-    tareas.push(Object.assign({id:uid(), estado:"pendiente", creadaEl:Date.now(), completadaEl:null, cronometro:{segundos:0, activo:false}}, datos));
+    guardada = Object.assign({id:uid(), estado:"pendiente", creadaEl:Date.now(), completadaEl:null, cronometro:{segundos:0, activo:false}}, datos);
+    tareas.push(guardada);
   }
   guardar(); hoja.close(); render();
+  if(guardada) programarRecordatorio(guardada);   // APK: alarma del sistema para este recordatorio
   avisar(editandoId ? "Tarea actualizada" : "Tarea añadida", false);
 });
 
@@ -1059,19 +1315,68 @@ function avisar(texto, conDeshacer){
 document.getElementById("avisoAccion").onclick = ()=>{
   if(ultimoBorrado){
     tareas.splice(Math.min(ultimoBorrado.indice, tareas.length), 0, ultimoBorrado.tarea);
+    programarRecordatorio(ultimoBorrado.tarea);   // deshacer: reprograma la alarma
     ultimoBorrado = null; guardar(); render();
   }
   document.getElementById("aviso").classList.remove("visible");
 };
 function vibrar(){ if(navigator.vibrate) try{ navigator.vibrate(14); }catch(e){} }
 
+/* ---------- Sonido de recordatorios (Web Audio, sin archivos) ---------- */
+const CLAVE_SONIDO = "mis-tareas-sonido";
+let sonidoActivo = true;
+try{ sonidoActivo = localStorage.getItem(CLAVE_SONIDO) !== "off"; }catch(e){}
+let ctxAudio = null;
+function desbloquearAudio(){
+  // El navegador exige un gesto previo: al primer toque queda el contexto abierto
+  if(!ctxAudio){
+    try{ ctxAudio = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ return; }
+  }
+  if(ctxAudio.state === "suspended") ctxAudio.resume().catch(()=>{});
+}
+document.addEventListener("pointerdown", desbloquearAudio, { once: true });
+// Dos pitidos cortos y suaves (evita el tono largo molesto en repetición)
+function pitido(){
+  if(!sonidoActivo) return;
+  desbloquearAudio();
+  if(!ctxAudio || ctxAudio.state !== "running") return;
+  const t0 = ctxAudio.currentTime;
+  [[0, 880], [0.16, 1174.7]].forEach(([retraso, freq])=>{
+    const osc = ctxAudio.createOscillator();
+    const gan = ctxAudio.createGain();
+    osc.type = "sine"; osc.frequency.value = freq;
+    gan.gain.setValueAtTime(0.0001, t0 + retraso);
+    gan.gain.exponentialRampToValueAtTime(0.22, t0 + retraso + 0.02);
+    gan.gain.exponentialRampToValueAtTime(0.0001, t0 + retraso + 0.14);
+    osc.connect(gan); gan.connect(ctxAudio.destination);
+    osc.start(t0 + retraso); osc.stop(t0 + retraso + 0.16);
+  });
+}
+function pintarBtnSonido(){
+  const b = document.getElementById("btnSonido");
+  b.innerHTML = ico(sonidoActivo ? "volumen" : "volumenOff");
+  b.setAttribute("aria-pressed", sonidoActivo ? "true" : "false");
+  b.title = sonidoActivo ? "Sonido de recordatorios: activado (tocar para silenciar)" : "Sonido de recordatorios: silenciado (tocar para activar)";
+}
+document.getElementById("btnSonido").onclick = ()=>{
+  sonidoActivo = !sonidoActivo;
+  try{ localStorage.setItem(CLAVE_SONIDO, sonidoActivo ? "on" : "off"); }catch(e){}
+  pintarBtnSonido();
+  if(sonidoActivo) pitido(); // feedback al activar
+};
+
 /* ---------- Copias (JSON) ---------- */
 const hojaCopias = document.getElementById("hojaCopias");
 document.getElementById("btnCopias").innerHTML = ico("guardar");
-document.getElementById("btnCopias").onclick = ()=>hojaCopias.showModal();
+document.getElementById("btnCopias").onclick = ()=>{ pintarEstadoAvisos(); hojaCopias.showModal(); };
 document.getElementById("btnCerrarCopias").onclick = ()=>{
   hojaCopias.close();
   document.getElementById("areaPegar").classList.add("oculto");
+};
+document.getElementById("btnPermisoAvisos").onclick = ()=>pedirPermisoNativo();
+document.getElementById("btnEntendido").onclick = ()=>{
+  try{ localStorage.setItem("mis-tareas-bienvenida", "1"); }catch(e){}
+  document.getElementById("bienvenida").close();
 };
 document.getElementById("btnPegarCopia").onclick = ()=>{
   document.getElementById("areaPegar").classList.toggle("oculto");
@@ -1135,25 +1440,87 @@ document.getElementById("areaPegar").addEventListener("blur", ()=>{
   if(texto.length>2) importarDesdeTexto(texto);
 });
 
+/* ---------- Notificaciones de sistema (APK, @capacitor/local-notifications) ---------- */
+/* En el navegador queda la Web Notification de arriba; en el APK hace falta el plugin:
+   Android no genera notificaciones desde una WebView por sí sola. */
+let permisoNativo = "desconocido";   // granted | denied | desconocido (navegador)
+async function pedirPermisoNativo(){
+  if(!esNativo) return permisoNativo;
+  try{
+    const r = await Capacitor.Plugins.LocalNotifications.requestPermissions();
+    permisoNativo = r && r.display === "granted" ? "granted" : "denied";
+  }catch(e){ permisoNativo = "denied"; }
+  pintarEstadoAvisos();
+  return permisoNativo;
+}
+async function notificarNativo(titulo, cuerpo){
+  if(!esNativo || permisoNativo !== "granted") return;
+  try{
+    await Capacitor.Plugins.LocalNotifications.schedule({ notifications: [{
+      id: String(Date.now() % 1000000),
+      title: titulo, body: cuerpo,
+      smallIcon: "ic_stat_notify"
+    }] });
+  }catch(e){}
+}
+// Programar el recordatorio de una tarea al guardarla; cancelar si desaparece o cambia
+async function programarRecordatorio(t){
+  if(!esNativo) return;
+  try{
+    const id = "rt-" + t.id;
+    await Capacitor.Plugins.LocalNotifications.cancel({ notifications: [{ id }] });
+    if(!t.recordatorio || t.estado === "completada") return;
+    const cuando = new Date(t.recordatorio).getTime();
+    if(isNaN(cuando) || cuando <= Date.now()) return;
+    if(permisoNativo !== "granted") await pedirPermisoNativo();
+    if(permisoNativo !== "granted") return;
+    await Capacitor.Plugins.LocalNotifications.schedule({ notifications: [{
+      id, title: "Recordatorio: " + t.titulo,
+      body: t.descripcion || "Tienes una tarea pendiente.",
+      schedule: { at: new Date(cuando) },
+      smallIcon: "ic_stat_notify"
+    }] });
+  }catch(e){}
+}
+async function cancelarRecordatorio(idTarea){
+  if(!esNativo) return;
+  try{ await Capacitor.Plugins.LocalNotifications.cancel({ notifications: [{ id: "rt-" + idTarea }] }); }catch(e){}
+}
+function pintarEstadoAvisos(){
+  const caja = document.getElementById("estadoAvisos");
+  if(!caja) return;
+  if(!esNativo){ caja.textContent = "Avisos del navegador (Web Notification)"; caja.classList.remove("bloqueado"); return; }
+  if(permisoNativo === "granted"){ caja.textContent = "Avisos del sistema: activados"; caja.classList.remove("bloqueado"); }
+  else if(permisoNativo === "denied"){
+    caja.textContent = "Avisos del sistema: BLOQUEADOS — actívalos en Ajustes de Android";
+    caja.classList.add("bloqueado");
+  }
+  else { caja.textContent = "Avisos del sistema: sin permiso"; caja.classList.remove("bloqueado"); }
+}
+
 /* ---------- Recordatorios (avisos dentro de la app) ---------- */
 function avisosHechos(){ try{ return new Set(JSON.parse(localStorage.getItem(CLAVE_AVISADOS)||"[]")); }catch(e){ return new Set(); } }
 function guardarAvisos(set){ try{ localStorage.setItem(CLAVE_AVISADOS, JSON.stringify([...set].slice(-300))); }catch(e){} }
 async function revisarRecordatorios(){
   const ahora = new Date();
   const set = avisosHechos();
-  let cambio = false;
+  let cambio = false, avisos = 0;
   for(const t of tareas){
     if(!t.recordatorio || t.estado==="completada") continue;
     const clave = t.id+"|"+t.recordatorio;
     if(set.has(clave)) continue;
     if(new Date(t.recordatorio) <= ahora){
-      set.add(clave); cambio = true;
+      set.add(clave); cambio = true; avisos++;
       avisar("Recordatorio: "+t.titulo, false);
-      vibrar();
       if(!esNativo && "Notification" in window && Notification.permission==="granted"){
         try{ new Notification("Recordatorio: "+t.titulo, { body: t.descripcion || "Tienes una tarea pendiente." }); }catch(e){}
       }
     }
+  }
+  if(avisos){
+    vibrar();
+    pitido();               // un solo par de pitidos por lote, no uno por tarea
+    if(esNativo) notificarNativo("Recordatorio", "Tienes "+avisos+(avisos===1?" recordatorio":" recordatorios")+" pendiente(s).");
   }
   if(cambio) guardarAvisos(set);
 }
@@ -1169,6 +1536,9 @@ function iniciar(){
   document.getElementById("icoGuardar").innerHTML = ico("guardar");
   document.getElementById("icoCargar").innerHTML = ico("abrir");
   document.getElementById("icoPegar").innerHTML = ico("texto");
+  document.getElementById("icoAvisos").innerHTML = ico("campana");
+  document.getElementById("icoCampana").innerHTML = ico("campana");
+  pintarBtnSonido();
 
   const datos = cargar();
   tareas = datos.tareas;
@@ -1182,6 +1552,14 @@ function iniciar(){
   aplicarTema(tema);
   setTab(vista.modo);
   atenderHash();
+  pintarEstadoAvisos();
+  if(esNativo) pedirPermisoNativo();   // APK: único pedido de permiso, al arrancar
+  // Bienvenida: solo la primera vez (flag propio; no se confunde con datos existentes)
+  try{
+    if(!localStorage.getItem("mis-tareas-bienvenida")){
+      document.getElementById("bienvenida").showModal();
+    }
+  }catch(e){}
   revisarRecordatorios();
   if(!esNativo && "Notification" in window && Notification.permission==="default"){
     // Se pide solo cuando el usuario toca una tarea con recordatorio: lo hacemos discreto al arrancar

@@ -144,6 +144,18 @@
   .progreso-sub{height:5px;background:var(--fondo);border-radius:99px;overflow:hidden;margin:8px 0 0 25px;border:1px solid var(--borde)}
   .progreso-sub>div{height:100%;background:linear-gradient(90deg,var(--verde),#34d399);border-radius:99px}
   .t-sub-txt{font-size:.74rem;color:var(--muted);margin:3px 0 0 25px}
+  /* Subtareas plegables (mismo esquema subsAbiertas que la mini) */
+  .t-subs-cab{
+    display:flex;align-items:center;gap:7px;width:100%;margin:8px 0 0;padding:7px 9px;min-height:32px;
+    background:var(--fondo);border:1px solid var(--borde);border-radius:8px;
+    font-size:.75rem;font-weight:700;color:var(--muted);cursor:pointer
+  }
+  .t-subs-cab .ico{width:13px;height:13px;transition:transform .2s ease;flex:none}
+  .t-subs-cab.abierta .ico{transform:rotate(90deg)}
+  .t-subs-cuenta{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--soft);font-weight:600}
+  .t-subs-wrap{display:grid;grid-template-rows:0fr;transition:grid-template-rows .2s ease}
+  .t-subs-wrap.abierta{grid-template-rows:1fr}
+  .t-subs-inner{overflow:hidden;min-height:0}
   .t-acciones{display:flex;gap:3px;margin:8px 0 0 25px}
   .t-acciones button{border:none;background:transparent;border-radius:6px;padding:4px 8px;font-size:.83rem;color:var(--muted)}
   .t-acciones button:hover{background:var(--fondo);color:var(--texto)}
@@ -697,6 +709,8 @@ function normalizar(t){
     recordatorio: typeof t.recordatorio==="string"? t.recordatorio : "",
     etiquetas: Array.isArray(t.etiquetas)? t.etiquetas.filter(e=>typeof e==="string") : [],
     subtareas: Array.isArray(t.subtareas)? t.subtareas.filter(s=>s&&typeof s.texto==="string").map(s=>({id:s.id||uid(),texto:s.texto,hecha:!!s.hecha})) : [],
+    // Plegado de subtareas (compartido con la mini): abierto por defecto si son pocas
+    subsAbiertas: typeof t.subsAbiertas==="boolean" ? t.subsAbiertas : (Array.isArray(t.subtareas)? t.subtareas.length<=3 : true),
     recur: ["diaria","semanal","mensual"].includes(t.recur)? t.recur : "no",
     creadaEl: typeof t.creadaEl==="number"? t.creadaEl : Date.now(),
     completadaEl: t.completadaEl || t.hechaEl || null,
@@ -796,8 +810,11 @@ function tarjetaHTML(t){
     + '</div>'
     + (subs.length
         ? '<div class="progreso-sub"><div style="width:'+pct+'%"></div></div>'
-          + '<div class="t-subs">'+subs.map(s=>'<label class="t-sub"><input type="checkbox" data-act="sub" data-sub="'+s.id+'" '+(s.hecha?"checked":"")+'><span'+(s.hecha?' class="ok"':'')+'>'+esc(s.texto)+'</span></label>').join("")+'</div>'
-          + '<div class="t-sub-txt">Subtareas: '+subsOk+' de '+subs.length+' ('+pct+'%)</div>'
+          + '<button type="button" class="t-subs-cab'+(t.subsAbiertas?" abierta":"")+'" data-act="subs" aria-expanded="'+(t.subsAbiertas?"true":"false")+'">'
+            + ico("adelante") + '<span>Subtareas</span><span class="t-subs-cuenta">'+subsOk+' de '+subs.length+' ('+pct+'%)</span></button>'
+          + '<div class="t-subs-wrap'+(t.subsAbiertas?" abierta":"")+'"><div class="t-subs-inner">'
+            + '<div class="t-subs">'+subs.map(s=>'<label class="t-sub"><input type="checkbox" data-act="sub" data-sub="'+s.id+'" '+(s.hecha?"checked":"")+'><span'+(s.hecha?' class="ok"':'')+'>'+esc(s.texto)+'</span></label>').join("")+'</div>'
+          + '</div></div>'
         : '')
     + '<div class="t-acciones"><button data-act="editar" title="Editar">'+ico("lapiz")+' Editar</button>'
     + '<button data-act="duplicar" class="boton-icono" title="Duplicar tarea" aria-label="Duplicar tarea">'+ico("copiar")+'</button>'
@@ -835,6 +852,17 @@ function crearTarjeta(t){
       if(s){ s.hecha = chk.checked; guardar(); render(); }
     };
   });
+  const cabSubs = div.querySelector('[data-act="subs"]');
+  if(cabSubs){
+    cabSubs.onclick = ()=>{
+      t.subsAbiertas = !t.subsAbiertas;
+      guardar();
+      cabSubs.classList.toggle("abierta", t.subsAbiertas);
+      cabSubs.setAttribute("aria-expanded", t.subsAbiertas ? "true" : "false");
+      const wrap = div.querySelector(".t-subs-wrap");
+      if(wrap) wrap.classList.toggle("abierta", t.subsAbiertas);
+    };
+  }
   return div;
 }
 function render(){
