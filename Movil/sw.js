@@ -2,7 +2,7 @@
    Cache-first con stale-while-revalidate y copia de respaldo del index.html.
    IMPORTANTE: es independiente del SW del escritorio (src/sw.js). Si cambias
    estos assets, sube la versión de CACHE. */
-const CACHE = "mis-tareas-mini-v3";
+const CACHE = "mis-tareas-mini-v4";
 const PRECACHE = [
   "./",
   "./index.html",

@@ -64,7 +64,8 @@
   .cima .espacio{flex:1}
   .icon-btn{
     width:44px;height:44px;border-radius:13px;border:1px solid var(--borde);background:var(--fondo);
-    display:inline-flex;align-items:center;justify-content:center;flex:none
+    display:inline-flex;align-items:center;justify-content:center;flex:none;
+    user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation
   }
   .icon-btn:active{transform:scale(.95)}
   .icon-btn .ico{width:19px;height:19px}
@@ -394,7 +395,7 @@
     </h1>
     <span class="espacio"></span>
     <button class="icon-btn" id="btnCopias" title="Copias de seguridad" aria-label="Copias de seguridad"></button>
-    <button class="icon-btn" id="btnSonido" title="Sonido de recordatorios" aria-label="Sonido de recordatorios" aria-pressed="true"></button>
+    <button class="icon-btn" id="btnSonido" title="Ajustar sonido de alerta (mantén pulsado para silenciar)" aria-label="Ajustar sonido de alerta (mantén pulsado para silenciar)" aria-pressed="true"></button>
     <button class="icon-btn" id="btnTema" title="Cambiar tema" aria-label="Cambiar tema"></button>
   </div>
   <div class="recuento" id="recuento"></div>
@@ -520,6 +521,7 @@
           <small id="estadoSonido">…</small>
         </div>
       </div>
+      <p class="nota-sonido">Atajo: toca el altavoz de la barra para abrir esta sección; mantén pulsado el altavoz para silenciar o activar.</p>
       <div class="fila-sonido">
         <label for="selSonidoModo">Tipo de sonido</label>
         <select id="selSonidoModo" aria-label="Tipo de sonido de alerta">
@@ -1510,8 +1512,8 @@ function pintarBtnSonido(){
   b.innerHTML = ico(sonidoActivo ? "volumen" : "volumenOff");
   b.setAttribute("aria-pressed", sonidoActivo ? "true" : "false");
   const detalle = sonidoActivo ? (sonidoModo === "archivo" && sonidoArchivo ? "archivo" : "predeterminado") : "silenciado";
-  b.title = "Sonido de recordatorios: " + detalle + " (tocar para " + (sonidoActivo ? "silenciar" : "activar") + ")";
-  b.setAttribute("aria-label", "Sonido de recordatorios: " + detalle);
+  b.title = "Ajustar sonido de alerta (" + detalle + "); mantén pulsado para " + (sonidoActivo ? "silenciar" : "activar");
+  b.setAttribute("aria-label", "Ajustar sonido de alerta: " + detalle + ". Mantén pulsado para silenciar o activar.");
 }
 function pintarAjustesSonido(){
   const est = document.getElementById("estadoSonido");
@@ -1560,12 +1562,39 @@ function elegirArchivoSonido(file){
   r.onerror = ()=>avisar("No se pudo leer el archivo de audio.", false);
   r.readAsDataURL(file);
 }
-document.getElementById("btnSonido").onclick = ()=>{
+function alternarSilencioSonido(){
   sonidoActivo = !sonidoActivo;
   guardarPrefsSonido();
   pintarAjustesSonido();
-  if(sonidoActivo) reproducirSonidoAlerta({ forzar: true }); // feedback al activar
-};
+  if(sonidoActivo) reproducirSonidoAlerta({ forzar: true });
+  avisar(sonidoActivo ? "Sonido de alerta activado" : "Sonido de alerta silenciado", false);
+}
+function abrirAjustesSonido(){
+  pintarEstadoAvisos();
+  pintarAjustesSonido();
+  guardarFocoDialogo(hojaCopias);
+  hojaCopias.showModal();
+  setTimeout(()=>{
+    const s = document.getElementById("bloqueSonido");
+    if(s) s.scrollIntoView({ block: "start" });
+  }, 60);
+}
+// Tocar el altavoz abre el ajuste; manténgolo pulsado ~0.5 s para silenciar/activar
+const btnSonidoEl = document.getElementById("btnSonido");
+let btnSonidoTimer = null;
+let btnSonidoLargo = false;
+btnSonidoEl.addEventListener("pointerdown", ()=>{
+  btnSonidoLargo = false;
+  clearTimeout(btnSonidoTimer);
+  btnSonidoTimer = setTimeout(()=>{ btnSonidoTimer = null; btnSonidoLargo = true; alternarSilencioSonido(); }, 500);
+});
+["pointerup","pointercancel","pointerleave"].forEach(ev=>btnSonidoEl.addEventListener(ev, ()=>{
+  if(btnSonidoTimer){ clearTimeout(btnSonidoTimer); btnSonidoTimer = null; }
+}));
+btnSonidoEl.addEventListener("click", ()=>{
+  if(btnSonidoLargo){ btnSonidoLargo = false; return; }   // ya silenció con la pulsación larga
+  abrirAjustesSonido();
+});
 const selSonidoModo = document.getElementById("selSonidoModo");
 const inpArchivoSonido = document.getElementById("archivoSonido");
 if(selSonidoModo) selSonidoModo.addEventListener("change", ev=>aplicarModoSonido(ev.target.value));
