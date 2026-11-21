@@ -27,6 +27,7 @@ dist/
 # Estado local de herramientas (sesiones, pruebas)
 .openchamber/
 .playwright-mcp/
+.playwright-cli/
 
 # Capturas sueltas de desarrollo (no forman parte del proyecto)
 /icono-mis-tareas.png
