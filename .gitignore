@@ -32,3 +32,6 @@ dist/
 # Capturas sueltas de desarrollo (no forman parte del proyecto)
 /icono-mis-tareas.png
 /vista-previa-formulario.png
+
+# Copias locales de APK (pesadas: nunca se suben; el APK sale de la Release apk-latest)
+Movil/apk/
