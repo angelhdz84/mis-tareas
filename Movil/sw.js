@@ -2,7 +2,7 @@
    Cache-first con stale-while-revalidate y copia de respaldo del index.html.
    IMPORTANTE: es independiente del SW del escritorio (src/sw.js). Si cambias
    estos assets, sube la versión de CACHE. */
-const CACHE = "mis-tareas-mini-v4";
+const CACHE = "mis-tareas-mini-v5";
 const PRECACHE = [
   "./",
   "./index.html",
@@ -11,7 +11,12 @@ const PRECACHE = [
   "./icon-192.png",
   "./icon-512.png",
   "./icon-maskable-192.png",
-  "./icon-maskable-512.png"
+  "./icon-maskable-512.png",
+  "./sonidos/campana.wav",
+  "./sonidos/doble-pitido.wav",
+  "./sonidos/alarma.wav",
+  "./sonidos/melodia.wav",
+  "./sonidos/pulso.wav"
 ];
 
 self.addEventListener("install", (ev)=>{

@@ -503,6 +503,17 @@
     <button class="opcion" id="btnPegarCopia"><span id="icoPegar"></span><span>Pegar el JSON<small>Si no puedes abrir el archivo</small></span></button>
     <label for="areaPegar" class="sr-only">Pegar contenido JSON</label>
     <textarea id="areaPegar" class="oculto" rows="5" placeholder="Pega aquí el contenido del .json" aria-label="Pegar contenido JSON de la copia" style="width:100%;margin-top:10px;padding:11px;border:1px solid var(--borde);border-radius:12px;background:var(--fondo)"></textarea>
+    <div class="botones"><button type="button" class="btn" id="btnCerrarCopias">Cerrar</button></div>
+  </div>
+</dialog>
+
+<dialog id="hojaSonido">
+  <div class="asidero"></div>
+  <div class="hoja">
+    <h2>Sonido y avisos</h2>
+    <p style="font-size:.83rem;color:var(--muted);margin-bottom:10px">
+      Elige cómo te avisan los recordatorios: tono de las notificaciones, música propia y volumen.
+    </p>
     <div class="opciones-avisos" id="bloqueAvisos">
       <div class="estado-avisos">
         <span id="icoAvisos"></span>
@@ -521,12 +532,27 @@
           <small id="estadoSonido">…</small>
         </div>
       </div>
-      <p class="nota-sonido">Atajo: toca el altavoz de la barra para abrir esta sección; mantén pulsado el altavoz para silenciar o activar.</p>
+      <p class="nota-sonido">Atajo: toca el altavoz de la barra para abrir esta hoja; mantén pulsado el altavoz para silenciar o activar.</p>
       <div class="fila-sonido">
         <label for="selSonidoModo">Tipo de sonido</label>
         <select id="selSonidoModo" aria-label="Tipo de sonido de alerta">
-          <option value="sistema">Sonido del sistema (predeterminado)</option>
-          <option value="archivo">Música de mis archivos</option>
+          <optgroup label="Incluidos en la app">
+            <option value="sistema">Sonido del sistema (predeterminado)</option>
+            <option value="tono:campana.wav">Campana</option>
+            <option value="tono:doble-pitido.wav">Doble pitido</option>
+            <option value="tono:alarma.wav">Alarma</option>
+            <option value="tono:melodia.wav">Melodía</option>
+            <option value="tono:pulso.wav">Pulso grave</option>
+          </optgroup>
+          <optgroup label="Tu archivo">
+            <option value="archivo">Música de mis archivos</option>
+          </optgroup>
+        </select>
+        <label for="selSonidoVol">Volumen del pitido</label>
+        <select id="selSonidoVol" aria-label="Volumen del pitido">
+          <option value="suave">Suave</option>
+          <option value="normal">Normal</option>
+          <option value="fuerte">Fuerte</option>
         </select>
         <input type="file" id="archivoSonido" accept="audio/*" hidden>
         <div class="acciones-sonido" id="filaArchivoSonido">
@@ -538,10 +564,10 @@
           <button type="button" class="btn" id="btnProbarSonido">Probar sonido</button>
           <button type="button" class="btn" id="btnToggleSonidoCfg">Activar / silenciar</button>
         </div>
-        <p class="nota-sonido">En la app abierta suena la opción elegida. En avisos del sistema de la APK en segundo plano se usa el sonido del sistema/canal de Android.</p>
+        <p class="nota-sonido">Los tonos incluidos y el sistema suenan también en las notificaciones de la APK con la app cerrada; tu música elegida solo suena con la app abierta.</p>
       </div>
     </div>
-    <div class="botones"><button type="button" class="btn" id="btnCerrarCopias">Cerrar</button></div>
+    <div class="botones"><button type="button" class="btn" id="btnCerrarSonido">Cerrar</button></div>
   </div>
 </dialog>
 
@@ -1212,7 +1238,7 @@ function restaurarFocoDialogo(dlg){
   if(d && document.contains(d)){ try{ d.focus(); }catch(e){} }
   if(dlg) dlg._disparador = null;
 }
-[hoja, document.getElementById("hojaCopias"), document.getElementById("bienvenida")].forEach(d=>{
+[hoja, document.getElementById("hojaCopias"), document.getElementById("hojaSonido"), document.getElementById("bienvenida")].forEach(d=>{
   if(!d) return;
   d.addEventListener("close", ()=>restaurarFocoDialogo(d));
   d.addEventListener("cancel", ()=>{ /* close disparará restauración */ });
@@ -1433,14 +1459,21 @@ document.getElementById("avisoAccion").onclick = ()=>{
   }
   document.getElementById("aviso").classList.remove("visible");
 };
-function vibrar(){ if(navigator.vibrate) try{ navigator.vibrate(14); }catch(e){} }
+function vibrar(ms){ if(navigator.vibrate) try{ navigator.vibrate(ms || 14); }catch(e){} }
 
-/* ---------- Sonido de recordatorios (sistema/sintetizado o archivo) ---------- */
+/* ---------- Sonido de recordatorios (sistema, tono incluido o archivo) ---------- */
 const CLAVE_SONIDO = "mis-tareas-sonido";          // on/off (compat)
-const CLAVE_SONIDO_MODO = "mis-tareas-sonido-modo"; // sistema | archivo
+const CLAVE_SONIDO_MODO = "mis-tareas-sonido-modo"; // sistema | tono | archivo
 const CLAVE_SONIDO_ARCHIVO = "mis-tareas-sonido-archivo"; // {nombre,data}
+const CLAVE_SONIDO_TONO = "mis-tareas-sonido-tono";  // fichero de Movil/sonidos/
+const CLAVE_SONIDO_VOL = "mis-tareas-sonido-vol";    // suave | normal | fuerte
+const TONOS = ["campana.wav", "doble-pitido.wav", "alarma.wav", "melodia.wav", "pulso.wav"];
+const NOMBRES_TONO = { "campana.wav":"Campana", "doble-pitido.wav":"Doble pitido", "alarma.wav":"Alarma", "melodia.wav":"Melodía", "pulso.wav":"Pulso grave" };
+const GAINS = { suave: 0.22, normal: 0.40, fuerte: 0.60 };
 let sonidoActivo = true;
 let sonidoModo = "sistema";
+let sonidoTono = "campana.wav";
+let sonidoVol = "normal";
 let sonidoArchivo = null; // {nombre, data(dataURL)}
 try{ sonidoActivo = localStorage.getItem(CLAVE_SONIDO) !== "off"; }catch(e){}
 try{
@@ -1449,9 +1482,12 @@ try{
     sonidoArchivo = { nombre: String(a.nombre || "Archivo de audio"), data: a.data };
   }
 }catch(e){ sonidoArchivo = null; }
+try{ const t = localStorage.getItem(CLAVE_SONIDO_TONO); if(t && TONOS.includes(t)) sonidoTono = t; }catch(e){}
+try{ const v = localStorage.getItem(CLAVE_SONIDO_VOL); if(GAINS[v]) sonidoVol = v; }catch(e){}
 try{
   const m = localStorage.getItem(CLAVE_SONIDO_MODO);
   if(m === "archivo" && sonidoArchivo) sonidoModo = "archivo";
+  else if(m === "tono") sonidoModo = "tono";
   else sonidoModo = "sistema";
 }catch(e){ sonidoModo = "sistema"; }
 let ctxAudio = null;
@@ -1466,37 +1502,57 @@ document.addEventListener("pointerdown", desbloquearAudio, { once: true });
 function pitidoSintetico(){
   desbloquearAudio();
   if(!ctxAudio || ctxAudio.state !== "running") return;
+  const nivel = GAINS[sonidoVol] || GAINS.normal;
   const t0 = ctxAudio.currentTime;
   [[0, 880], [0.16, 1174.7]].forEach(([retraso, freq])=>{
     const osc = ctxAudio.createOscillator();
     const gan = ctxAudio.createGain();
     osc.type = "sine"; osc.frequency.value = freq;
     gan.gain.setValueAtTime(0.0001, t0 + retraso);
-    gan.gain.exponentialRampToValueAtTime(0.22, t0 + retraso + 0.02);
+    gan.gain.exponentialRampToValueAtTime(nivel, t0 + retraso + 0.02);
     gan.gain.exponentialRampToValueAtTime(0.0001, t0 + retraso + 0.14);
     osc.connect(gan); gan.connect(ctxAudio.destination);
     osc.start(t0 + retraso); osc.stop(t0 + retraso + 0.16);
   });
 }
-function reproducirSonidoAlerta(opts){
-  const forzar = !!(opts && opts.forzar);
-  if(!forzar && !sonidoActivo) return;
-  if(sonidoModo === "archivo" && sonidoArchivo && sonidoArchivo.data){
-    try{
-      const a = new Audio(sonidoArchivo.data);
-      a.volume = 1;
-      const p = a.play();
-      if(p && p.catch) p.catch(()=>pitidoSintetico());
-      return;
-    }catch(e){ /* cae a sintetizado */ }
-  }
+function reproducirAudio(src){
+  try{
+    const a = new Audio(src);
+    a.volume = 1;
+    const p = a.play();
+    if(p && p.catch) p.catch(()=>pitidoSintetico());
+  }catch(e){ pitidoSintetico(); }
+}
+function unaVezSonido(){
+  if(sonidoModo === "archivo" && sonidoArchivo && sonidoArchivo.data){ reproducirAudio(sonidoArchivo.data); return; }
+  if(sonidoModo === "tono"){ reproducirAudio("./sonidos/" + sonidoTono); return; }
   pitidoSintetico();
 }
+let sonidoRepitiendo = false;
+function reproducirSonidoAlerta(opts){
+  const forzar = !!(opts && opts.forzar);
+  const veces = (opts && opts.veces) || 1;
+  if(!forzar && !sonidoActivo) return;
+  if(veces <= 1){ unaVezSonido(); return; }
+  if(sonidoRepitiendo) return;           // ya suena el patrón: no solapar
+  sonidoRepitiendo = true;
+  let i = 0;
+  const paso = ()=>{
+    if(!sonidoRepitiendo) return;
+    if(i >= veces){ sonidoRepitiendo = false; return; }
+    i++; unaVezSonido();
+    setTimeout(paso, 900);               // los tonos incluidos duran ≤0,9 s
+  };
+  paso();
+}
+function detenerPatronSonido(){ sonidoRepitiendo = false; }
 function pitido(){ reproducirSonidoAlerta(); }
 function guardarPrefsSonido(){
   try{
     localStorage.setItem(CLAVE_SONIDO, sonidoActivo ? "on" : "off");
     localStorage.setItem(CLAVE_SONIDO_MODO, sonidoModo);
+    localStorage.setItem(CLAVE_SONIDO_TONO, sonidoTono);
+    localStorage.setItem(CLAVE_SONIDO_VOL, sonidoVol);
     if(sonidoArchivo) localStorage.setItem(CLAVE_SONIDO_ARCHIVO, JSON.stringify(sonidoArchivo));
     else localStorage.removeItem(CLAVE_SONIDO_ARCHIVO);
   }catch(e){ avisar("No se pudo guardar la configuración del sonido (espacio insuficiente).", false); }
@@ -1504,6 +1560,7 @@ function guardarPrefsSonido(){
 function textoEstadoSonido(){
   if(!sonidoActivo) return "Silenciado";
   if(sonidoModo === "archivo" && sonidoArchivo) return "Archivo: " + sonidoArchivo.nombre;
+  if(sonidoModo === "tono") return "Tono: " + (NOMBRES_TONO[sonidoTono] || sonidoTono);
   return "Predeterminado (sistema)";
 }
 function pintarBtnSonido(){
@@ -1511,29 +1568,37 @@ function pintarBtnSonido(){
   if(!b) return;
   b.innerHTML = ico(sonidoActivo ? "volumen" : "volumenOff");
   b.setAttribute("aria-pressed", sonidoActivo ? "true" : "false");
-  const detalle = sonidoActivo ? (sonidoModo === "archivo" && sonidoArchivo ? "archivo" : "predeterminado") : "silenciado";
+  const detalle = !sonidoActivo ? "silenciado"
+    : sonidoModo === "archivo" && sonidoArchivo ? "archivo"
+    : sonidoModo === "tono" ? (NOMBRES_TONO[sonidoTono] || "tono")
+    : "predeterminado";
   b.title = "Ajustar sonido de alerta (" + detalle + "); mantén pulsado para " + (sonidoActivo ? "silenciar" : "activar");
   b.setAttribute("aria-label", "Ajustar sonido de alerta: " + detalle + ". Mantén pulsado para silenciar o activar.");
 }
 function pintarAjustesSonido(){
   const est = document.getElementById("estadoSonido");
   const sel = document.getElementById("selSonidoModo");
+  const vol = document.getElementById("selSonidoVol");
   const fila = document.getElementById("filaArchivoSonido");
   const nom = document.getElementById("nombreSonido");
   const btnQ = document.getElementById("btnQuitarSonido");
   const btnT = document.getElementById("btnToggleSonidoCfg");
   if(est) est.textContent = textoEstadoSonido();
-  if(sel) sel.value = sonidoModo;
-  if(fila) fila.style.display = (sel && sel.value === "archivo") ? "flex" : "none";
+  if(sel) sel.value = (sonidoModo === "tono") ? ("tono:" + sonidoTono) : sonidoModo;
+  if(vol) vol.value = sonidoVol;
+  if(fila) fila.style.display = (sonidoModo === "archivo") ? "flex" : "none";
   if(nom) nom.textContent = (sonidoModo === "archivo" && sonidoArchivo) ? ("Archivo elegido: " + sonidoArchivo.nombre) : (sonidoModo === "archivo" ? "Ningún archivo elegido (se usará el predeterminado)." : "");
   if(btnQ) btnQ.disabled = !(sonidoArchivo);
   if(btnT) btnT.textContent = sonidoActivo ? "Silenciar sonido" : "Activar sonido";
   pintarBtnSonido();
 }
-function aplicarModoSonido(modo){
-  sonidoModo = (modo === "archivo") ? "archivo" : "sistema";
-  if(sonidoModo === "sistema"){
-    // mantiene archivo guardado? mejor limpiar selección activa solo si cambia a sistema no; pero UX: conserva archivo por si vuelve
+function aplicarModoSonido(valor){
+  if(String(valor).startsWith("tono:")){
+    const t = String(valor).slice(5);
+    sonidoModo = TONOS.includes(t) ? "tono" : "sistema";
+    if(sonidoModo === "tono") sonidoTono = t;
+  }else{
+    sonidoModo = (valor === "archivo") ? "archivo" : "sistema";
   }
   if(sonidoModo === "archivo" && !sonidoArchivo){
     avisar("Elige un archivo de audio para usar tu música.", false);
@@ -1572,8 +1637,8 @@ function alternarSilencioSonido(){
 function abrirAjustesSonido(){
   pintarEstadoAvisos();
   pintarAjustesSonido();
-  guardarFocoDialogo(hojaCopias);
-  hojaCopias.showModal();
+  guardarFocoDialogo(hojaSonido);
+  hojaSonido.showModal();
   setTimeout(()=>{
     const s = document.getElementById("bloqueSonido");
     if(s) s.scrollIntoView({ block: "start" });
@@ -1596,8 +1661,15 @@ btnSonidoEl.addEventListener("click", ()=>{
   abrirAjustesSonido();
 });
 const selSonidoModo = document.getElementById("selSonidoModo");
+const selSonidoVol = document.getElementById("selSonidoVol");
 const inpArchivoSonido = document.getElementById("archivoSonido");
 if(selSonidoModo) selSonidoModo.addEventListener("change", ev=>aplicarModoSonido(ev.target.value));
+if(selSonidoVol) selSonidoVol.addEventListener("change", ev=>{
+  sonidoVol = ev.target.value;
+  guardarPrefsSonido();
+  pintarAjustesSonido();
+  reproducirSonidoAlerta({ forzar: true });   // feedback del nuevo volumen
+});
 if(document.getElementById("btnElegirSonido")) document.getElementById("btnElegirSonido").onclick = ()=>{
   if(inpArchivoSonido){ inpArchivoSonido.value = ""; inpArchivoSonido.click(); }
 };
@@ -1614,7 +1686,8 @@ if(document.getElementById("btnQuitarSonido")) document.getElementById("btnQuita
 };
 if(document.getElementById("btnProbarSonido")) document.getElementById("btnProbarSonido").onclick = ()=>{
   desbloquearAudio();
-  reproducirSonidoAlerta({ forzar: true });
+  detenerPatronSonido();
+  reproducirSonidoAlerta({ forzar: true, veces: 3 });   // el patrón completo de alerta
 };
 if(document.getElementById("btnToggleSonidoCfg")) document.getElementById("btnToggleSonidoCfg").onclick = ()=>{
   sonidoActivo = !sonidoActivo;
@@ -1625,8 +1698,10 @@ if(document.getElementById("btnToggleSonidoCfg")) document.getElementById("btnTo
 
 /* ---------- Copias (JSON) ---------- */
 const hojaCopias = document.getElementById("hojaCopias");
+const hojaSonido = document.getElementById("hojaSonido");
 document.getElementById("btnCopias").innerHTML = ico("guardar");
-document.getElementById("btnCopias").onclick = ()=>{ pintarEstadoAvisos(); pintarAjustesSonido(); guardarFocoDialogo(hojaCopias); hojaCopias.showModal(); };
+document.getElementById("btnCopias").onclick = ()=>{ guardarFocoDialogo(hojaCopias); hojaCopias.showModal(); };
+document.getElementById("btnCerrarSonido").onclick = ()=>{ hojaSonido.close(); };
 document.getElementById("btnCerrarCopias").onclick = ()=>{
   hojaCopias.close();
   document.getElementById("areaPegar").classList.add("oculto");
@@ -1711,13 +1786,20 @@ async function pedirPermisoNativo(){
   pintarEstadoAvisos();
   return permisoNativo;
 }
+function extrasSonidoNotificacion(){
+  const extra = {};
+  if(sonidoModo === "tono") extra.sound = sonidoTono;   // el plugin crea un canal con ese tono (assets/public)
+  if(!sonidoActivo) extra.silent = true;                // silenciado en la app → notificación muda
+  return extra;
+}
 async function notificarNativo(titulo, cuerpo){
   if(!esNativo || permisoNativo !== "granted") return;
   try{
     await Capacitor.Plugins.LocalNotifications.schedule({ notifications: [{
       id: String(Date.now() % 1000000),
       title: titulo, body: cuerpo,
-      smallIcon: "ic_stat_notify"
+      smallIcon: "ic_stat_notify",
+      ...extrasSonidoNotificacion()
     }] });
   }catch(e){}
 }
@@ -1736,7 +1818,8 @@ async function programarRecordatorio(t){
       id, title: "Recordatorio: " + t.titulo,
       body: t.descripcion || "Tienes una tarea pendiente.",
       schedule: { at: new Date(cuando) },
-      smallIcon: "ic_stat_notify"
+      smallIcon: "ic_stat_notify",
+      ...extrasSonidoNotificacion()
     }] });
   }catch(e){}
 }
@@ -1776,8 +1859,9 @@ async function revisarRecordatorios(){
     }
   }
   if(avisos){
-    vibrar();
-    pitido();               // un solo par de pitidos por lote, no uno por tarea
+    vibrar(250);               // alerta: vibración larga (los toques sueltos siguen en 14 ms)
+    detenerPatronSonido();
+    reproducirSonidoAlerta({ veces: 3 });   // un solo patrón de 3 por lote, no uno por tarea
     if(esNativo) notificarNativo("Recordatorio", "Tienes "+avisos+(avisos===1?" recordatorio":" recordatorios")+" pendiente(s).");
   }
   if(cambio) guardarAvisos(set);
